@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sesión 3 · Tablas de frecuencia</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1a18;
+      --ink-light: #8a8a82;
+      --rule: #d4d0c4;
+      --cream: #f8f6f0;
+      --paper: #ffffff;
+      --accent: #1a3a5c;
+      --accent-light: #e8eef5;
+      --cara: #2d5a3d;
+      --cara-light: #e8f2ec;
+      --cruz: #6b3a1a;
+      --cruz-light: #f5ede8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+      ), repeating-linear-gradient(
+        90deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+      );
+      pointer-events: none;
+    }
+
+    .header-label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 0.6rem;
+      font-weight: 300;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      font-style: italic;
+      font-weight: 300;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    /* ── Controls ── */
+    .controls {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 2rem;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .controls label {
+      font-size: 14px;
+      color: var(--ink-light);
+      white-space: nowrap;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      min-width: 120px;
+      accent-color: var(--accent);
+      cursor: pointer;
+    }
+
+    .n-display {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+      color: var(--accent);
+      min-width: 36px;
+      text-align: center;
+    }
+
+    .btn-lanzar {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 15px;
+      padding: 8px 22px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-lanzar:hover { background: #0c2840; }
+
+    /* ── Coin sequence ── */
+    #secuencia-wrap { display: none; margin-bottom: 2rem; }
+
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    #secuencia {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+    }
+
+    .coin {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+      font-weight: 400;
+      letter-spacing: 0;
+      border: 1.5px solid;
+      transition: transform 0.1s;
+    }
+
+    .coin.cara {
+      background: var(--cara-light);
+      border-color: #a0c8b0;
+      color: var(--cara);
+    }
+
+    .coin.cruz {
+      background: var(--cruz-light);
+      border-color: #d4b0a0;
+      color: var(--cruz);
+    }
+
+    /* ── Table ── */
+    #tabla-wrap { display: none; margin-bottom: 2rem; }
+
+    .tabla-container {
+      overflow-x: auto;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      background: var(--paper);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead tr {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    thead th {
+      padding: 12px 16px;
+      text-align: center;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 400;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+      cursor: default;
+      position: relative;
+    }
+
+    thead th .th-inner {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+
+    .info-icon {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 1px solid rgba(255,255,255,0.5);
+      font-size: 10px;
+      color: rgba(255,255,255,0.7);
+      cursor: help;
+      flex-shrink: 0;
+      font-style: normal;
+      font-family: serif;
+    }
+
+    /* Tooltip */
+    .tooltip-wrap { position: relative; display: inline-flex; }
+
+    .tooltip {
+      display: none;
+      position: absolute;
+      top: calc(100% + 8px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a18;
+      color: #f8f6f0;
+      font-size: 12px;
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-style: italic;
+      padding: 8px 12px;
+      border-radius: 6px;
+      white-space: nowrap;
+      z-index: 100;
+      line-height: 1.5;
+      pointer-events: none;
+      max-width: 260px;
+      white-space: normal;
+      text-align: center;
+    }
+
+    .tooltip::before {
+      content: '';
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 5px solid transparent;
+      border-bottom-color: #1a1a18;
+    }
+
+    .tooltip-wrap:hover .tooltip { display: block; }
+
+    tbody tr {
+      border-bottom: 1px solid var(--rule);
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody td {
+      padding: 13px 16px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .td-valor {
+      cursor: help;
+      transition: background 0.15s;
+      border-radius: 4px;
+      position: relative;
+    }
+
+    .td-valor:hover { background: var(--accent-light); }
+
+    .td-resultado {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+    }
+
+    .td-cara { color: var(--cara); }
+    .td-cruz { color: var(--cruz); }
+
+    tfoot tr {
+      background: var(--cream);
+      border-top: 2px solid var(--rule);
+    }
+
+    tfoot td {
+      padding: 10px 16px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+
+    tfoot td:first-child { text-align: left; font-style: normal; color: var(--ink); font-weight: 400; }
+
+    /* ── Explanation panel ── */
+    #explicacion-wrap { display: none; margin-bottom: 2rem; }
+
+    .explicacion-panel {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-left: 3px solid var(--accent);
+      border-radius: 0 8px 8px 0;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .explicacion-titulo {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 16px;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+
+    .formulas {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 12px;
+      margin-bottom: 1rem;
+    }
+
+    .formula-card {
+      background: var(--cream);
+      border-radius: 6px;
+      padding: 12px 14px;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: border-color 0.15s;
+    }
+
+    .formula-card:hover { border-color: var(--accent); }
+    .formula-card.activa { border-color: var(--accent); background: var(--accent-light); }
+
+    .formula-card .fc-nombre {
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-bottom: 5px;
+    }
+
+    .formula-card .fc-formula {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 15px;
+      color: var(--accent);
+    }
+
+    .detalle {
+      display: none;
+      background: var(--accent-light);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--accent);
+    }
+
+    .detalle.visible { display: block; }
+
+    /* ── Sesión 4 button ── */
+    #sesion4-wrap {
+      display: none;
+      margin-top: 1rem;
+    }
+
+    .btn-sesion4 {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 14px;
+      padding: 10px 22px;
+      background: var(--cara);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .btn-sesion4:hover { background: #1d3d29; }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 2rem;
+      font-size: 13px;
+      color: var(--ink-light);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 12px;
+      color: var(--ink-light);
+      border-top: 1px solid var(--rule);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-label">Sesión 3 · Estadística</p>
+  <h1>Tablas de frecuencia</h1>
+  <p>Lanzamiento de moneda y construcción de la tabla</p>
+</header>
+
+<main>
+
+  <div class="controls">
+    <label for="nSlider">Número de lanzamientos:</label>
+    <input type="range" id="nSlider" min="20" max="100" value="20" step="1" />
+    <span class="n-display" id="nOut">20</span>
+    <button class="btn-lanzar" onclick="lanzar()">🪙 Lanzar</button>
+  </div>
+
+  <div id="secuencia-wrap">
+    <p class="section-label">Secuencia de resultados</p>
+    <div id="secuencia"></div>
+  </div>
+
+  <div id="tabla-wrap">
+    <p class="section-label">Tabla de frecuencias</p>
+    <div class="tabla-container">
+      <table>
+        <thead>
+          <tr>
+            <th><div class="th-inner">Resultado</div></th>
+            <th>
+              <div class="th-inner">
+                Frecuencia absoluta
+                <div class="tooltip-wrap">
+                  <span class="info-icon">i</span>
+                  <div class="tooltip">Número de veces que aparece cada resultado. Se cuenta directamente de los lanzamientos.</div>
+                </div>
+              </div>
+            </th>
+            <th>
+              <div class="th-inner">
+                Frecuencia relativa
+                <div class="tooltip-wrap">
+                  <span class="info-icon">i</span>
+                  <div class="tooltip">Cociente entre la frecuencia absoluta y el total de lanzamientos. Valor entre 0 y 1.</div>
+                </div>
+              </div>
+            </th>
+            <th>
+              <div class="th-inner">
+                Porcentaje
+                <div class="tooltip-wrap">
+                  <span class="info-icon">i</span>
+                  <div class="tooltip">Frecuencia relativa multiplicada por 100. Expresa el resultado en tanto por ciento.</div>
+                </div>
+              </div>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+        <tfoot id="tfoot"></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div id="explicacion-wrap">
+    <p class="section-label">Cómo se calcula cada columna</p>
+    <div class="explicacion-panel">
+      <p class="explicacion-titulo">Pulsa en una columna para ver su cálculo con tus datos</p>
+      <div class="formulas">
+        <div class="formula-card" onclick="mostrarDetalle('abs')">
+          <div class="fc-nombre">Frecuencia absoluta</div>
+          <div class="fc-formula">nᵢ = conteo directo</div>
+        </div>
+        <div class="formula-card" onclick="mostrarDetalle('rel')">
+          <div class="fc-nombre">Frecuencia relativa</div>
+          <div class="fc-formula">fᵢ = nᵢ / N</div>
+        </div>
+        <div class="formula-card" onclick="mostrarDetalle('pct')">
+          <div class="fc-nombre">Porcentaje</div>
+          <div class="fc-formula">%ᵢ = fᵢ × 100</div>
+        </div>
+      </div>
+      <div class="detalle" id="detalle"></div>
+    </div>
+  </div>
+
+  <div id="sesion4-wrap">
+    <a class="btn-sesion4" id="btn-sesion4" href="#">Continuar a la sesión 4 → Diagrama de sectores</a>
+  </div>
+
+  <a class="back-link" href="../index.html">← Volver al índice</a>
+
+</main>
+
+<footer>
+  Unidad didáctica de Estadística · Curso 2025–2026
+</footer>
+
+<script>
+  const slider = document.getElementById('nSlider');
+  const nOut = document.getElementById('nOut');
+  slider.addEventListener('input', () => { nOut.textContent = slider.value; });
+
+  let datosGlobales = {};
+
+  function lanzar() {
+    const n = parseInt(slider.value);
+    const resultados = Array.from({length: n}, () => Math.random() < 0.5 ? 'Cara' : 'Cruz');
+    const nCara = resultados.filter(r => r === 'Cara').length;
+    const nCruz = n - nCara;
+
+    datosGlobales = { n, nCara, nCruz };
+
+    // Secuencia
+    const seq = document.getElementById('secuencia');
+    seq.innerHTML = '';
+    resultados.forEach(r => {
+      const s = document.createElement('span');
+      s.className = `coin ${r === 'Cara' ? 'cara' : 'cruz'}`;
+      s.textContent = r === 'Cara' ? 'C' : 'X';
+      s.title = r;
+      seq.appendChild(s);
+    });
+    document.getElementById('secuencia-wrap').style.display = 'block';
+
+    // Tabla
+    const tbody = document.getElementById('tbody');
+    const tfoot = document.getElementById('tfoot');
+
+    const filas = [
+      { label: 'Cara', n: nCara, clase: 'td-cara' },
+      { label: 'Cruz', n: nCruz, clase: 'td-cruz' },
+    ];
+
+    tbody.innerHTML = '';
+    filas.forEach(f => {
+      const frel = f.n / n;
+      const pct = frel * 100;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="td-resultado ${f.clase}">${f.label}</td>
+        <td class="td-valor" title="Se han contado ${f.n} ${f.label.toLowerCase()}s de ${n} lanzamientos">${f.n}</td>
+        <td class="td-valor" title="${f.n} ÷ ${n} = ${frel.toFixed(4)}">${frel.toFixed(4)}</td>
+        <td class="td-valor" title="${frel.toFixed(4)} × 100 = ${pct.toFixed(2)}%">${pct.toFixed(2)}%</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tfoot.innerHTML = `
+      <tr>
+        <td>Total</td>
+        <td>${n}</td>
+        <td>1,0000</td>
+        <td>100,00%</td>
+      </tr>
+    `;
+
+    document.getElementById('tabla-wrap').style.display = 'block';
+    document.getElementById('explicacion-wrap').style.display = 'block';
+    document.getElementById('sesion4-wrap').style.display = 'block';
+
+    // Enlace sesión 4 con datos en URL
+    const params = new URLSearchParams({ n, cara: nCara, cruz: nCruz });
+    document.getElementById('btn-sesion4').href = `../sesion-04/index.html?${params.toString()}`;
+
+    // Reset detalle
+    document.getElementById('detalle').classList.remove('visible');
+    document.querySelectorAll('.formula-card').forEach(c => c.classList.remove('activa'));
+  }
+
+  function mostrarDetalle(tipo) {
+    const { n, nCara, nCruz } = datosGlobales;
+    if (!n) return;
+
+    const fCara = nCara / n;
+    const fCruz = nCruz / n;
+
+    const textos = {
+      abs: `
+        <strong>Frecuencia absoluta (nᵢ)</strong> — Es simplemente el número de veces que ha aparecido cada resultado.<br><br>
+        Con tus datos:<br>
+        · Cara: se ha obtenido <strong>${nCara}</strong> veces.<br>
+        · Cruz: se ha obtenido <strong>${nCruz}</strong> veces.<br>
+        · Total: ${nCara} + ${nCruz} = <strong>${n}</strong> lanzamientos.
+      `,
+      rel: `
+        <strong>Frecuencia relativa (fᵢ)</strong> — Se calcula dividiendo la frecuencia absoluta entre el total de lanzamientos (N = ${n}).<br><br>
+        Con tus datos:<br>
+        · Cara: ${nCara} ÷ ${n} = <strong>${fCara.toFixed(4)}</strong><br>
+        · Cruz: ${nCruz} ÷ ${n} = <strong>${fCruz.toFixed(4)}</strong><br>
+        · Suma: ${fCara.toFixed(4)} + ${fCruz.toFixed(4)} = <strong>1,0000</strong> (siempre suma 1).
+      `,
+      pct: `
+        <strong>Porcentaje (%ᵢ)</strong> — Se obtiene multiplicando la frecuencia relativa por 100. Expresa qué parte del total representa cada resultado.<br><br>
+        Con tus datos:<br>
+        · Cara: ${fCara.toFixed(4)} × 100 = <strong>${(fCara * 100).toFixed(2)}%</strong><br>
+        · Cruz: ${fCruz.toFixed(4)} × 100 = <strong>${(fCruz * 100).toFixed(2)}%</strong><br>
+        · Suma: <strong>100,00%</strong> (siempre suma 100).
+      `,
+    };
+
+    document.getElementById('detalle').innerHTML = textos[tipo];
+    document.getElementById('detalle').classList.add('visible');
+    document.querySelectorAll('.formula-card').forEach(c => c.classList.remove('activa'));
+    document.querySelector(`.formula-card[onclick="mostrarDetalle('${tipo}')"]`).classList.add('activa');
+  }
+</script>
+
+</body>
+</html>
