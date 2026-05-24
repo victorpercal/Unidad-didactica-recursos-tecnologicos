@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sesión 1 · Variables estadísticas</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1a18;
+      --ink-light: #8a8a82;
+      --rule: #d4d0c4;
+      --cream: #f8f6f0;
+      --paper: #ffffff;
+      --accent: #1a3a5c;
+      --accent-light: #e8eef5;
+
+      --c-cual: #1a3a5c;
+      --c-cual-bg: #e8eef5;
+      --c-cual-border: #a8c0d8;
+
+      --c-disc: #2d5a3d;
+      --c-disc-bg: #e8f2ec;
+      --c-disc-border: #a0c8b0;
+
+      --c-cont: #6b3a1a;
+      --c-cont-bg: #f5ede8;
+      --c-cont-border: #d4b0a0;
+
+      --c-ok: #2d5a3d;
+      --c-ok-bg: #e8f2ec;
+      --c-err: #8b1a1a;
+      --c-err-bg: #f5e8e8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+      ), repeating-linear-gradient(
+        90deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+      );
+      pointer-events: none;
+    }
+
+    .header-label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 0.6rem;
+      font-weight: 300;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      font-style: italic;
+      font-weight: 300;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: var(--ink-light);
+    }
+
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+
+    .enunciado {
+      font-size: 14px;
+      color: var(--ink-light);
+      font-style: italic;
+      margin-bottom: 2rem;
+      padding: 1rem 1.25rem;
+      border-left: 3px solid var(--accent);
+      background: var(--accent-light);
+      border-radius: 0 4px 4px 0;
+      line-height: 1.6;
+    }
+
+    .items {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 2.5rem;
+    }
+
+    .item {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      animation: fadeUp 0.35s both;
+    }
+
+    .item-question {
+      font-size: 15px;
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .item-num {
+      font-family: 'Playfair Display', Georgia, serif;
+      color: var(--ink-light);
+      margin-right: 6px;
+    }
+
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .opt-btn {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 13px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid var(--rule);
+      background: var(--cream);
+      color: var(--ink-light);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .opt-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .opt-btn.selected-cual {
+      background: var(--c-cual-bg);
+      border-color: var(--c-cual-border);
+      color: var(--c-cual);
+    }
+
+    .opt-btn.selected-disc {
+      background: var(--c-disc-bg);
+      border-color: var(--c-disc-border);
+      color: var(--c-disc);
+    }
+
+    .opt-btn.selected-cont {
+      background: var(--c-cont-bg);
+      border-color: var(--c-cont-border);
+      color: var(--c-cont);
+    }
+
+    .feedback {
+      display: none;
+      margin-top: 0.6rem;
+      font-size: 13px;
+      font-style: italic;
+      line-height: 1.5;
+      padding: 6px 10px;
+      border-radius: 4px;
+    }
+
+    .feedback.ok {
+      background: var(--c-ok-bg);
+      color: var(--c-ok);
+    }
+
+    .feedback.err {
+      background: var(--c-err-bg);
+      color: var(--c-err);
+    }
+
+    .item.corrected-ok {
+      border-left: 3px solid var(--c-ok);
+    }
+
+    .item.corrected-err {
+      border-left: 3px solid var(--c-err);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn-corregir {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 15px;
+      padding: 10px 28px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-corregir:hover { background: #0c2840; }
+
+    .btn-reset {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 14px;
+      padding: 10px 20px;
+      background: transparent;
+      color: var(--ink-light);
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-reset:hover { border-color: var(--ink-light); color: var(--ink); }
+
+    .resultado {
+      display: none;
+      font-size: 15px;
+      padding: 1rem 1.25rem;
+      border-radius: 6px;
+      line-height: 1.6;
+    }
+
+    .resultado.bien {
+      background: var(--c-ok-bg);
+      color: var(--c-ok);
+      border-left: 3px solid var(--c-ok);
+    }
+
+    .resultado.regular {
+      background: var(--accent-light);
+      color: var(--accent);
+      border-left: 3px solid var(--accent);
+    }
+
+    .resultado.mal {
+      background: var(--c-err-bg);
+      color: var(--c-err);
+      border-left: 3px solid var(--c-err);
+    }
+
+    .resultado strong {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 20px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 2rem;
+      font-size: 13px;
+      color: var(--ink-light);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 12px;
+      color: var(--ink-light);
+      border-top: 1px solid var(--rule);
+      font-style: italic;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .item:nth-child(1)  { animation-delay: 0.04s; }
+    .item:nth-child(2)  { animation-delay: 0.08s; }
+    .item:nth-child(3)  { animation-delay: 0.12s; }
+    .item:nth-child(4)  { animation-delay: 0.16s; }
+    .item:nth-child(5)  { animation-delay: 0.20s; }
+    .item:nth-child(6)  { animation-delay: 0.24s; }
+    .item:nth-child(7)  { animation-delay: 0.28s; }
+    .item:nth-child(8)  { animation-delay: 0.32s; }
+    .item:nth-child(9)  { animation-delay: 0.36s; }
+    .item:nth-child(10) { animation-delay: 0.40s; }
+
+    @media (max-width: 500px) {
+      .options { flex-direction: column; }
+      .opt-btn { text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-label">Sesión 1 · Estadística</p>
+  <h1>Variables estadísticas</h1>
+  <p>Clasificación de variables por tipo</p>
+</header>
+
+<main>
+
+  <p class="enunciado">
+    Decide qué tipo de variable es cada una de las siguientes. Cuando hayas respondido todas, pulsa <em>Corregir</em> para ver el resultado.
+  </p>
+
+  <div class="legend">
+    <div class="legend-item">
+      <div class="legend-dot" style="background: var(--c-cual-bg); border: 1px solid var(--c-cual-border);"></div>
+      Cualitativa
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: var(--c-disc-bg); border: 1px solid var(--c-disc-border);"></div>
+      Cuantitativa discreta
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: var(--c-cont-bg); border: 1px solid var(--c-cont-border);"></div>
+      Cuantitativa continua
+    </div>
+  </div>
+
+  <div class="items" id="items"></div>
+
+  <div class="actions">
+    <button class="btn-corregir" onclick="corregir()">Corregir ejercicio</button>
+    <button class="btn-reset" onclick="resetear()">Reiniciar</button>
+  </div>
+
+  <div class="resultado" id="resultado"></div>
+
+  <a class="back-link" href="../index.html">← Volver al índice</a>
+
+</main>
+
+<footer>
+  Unidad didáctica de Estadística · Curso 2025–2026
+</footer>
+
+<script>
+  const preguntas = [
+    { texto: "Sabor de helado favorito",              respuesta: "cual", explicacion: "Es una categoría sin valor numérico, por tanto cualitativa." },
+    { texto: "Número de mascotas en casa",             respuesta: "disc", explicacion: "Se cuentan en valores enteros y no puede tomar valores intermedios: cuantitativa discreta." },
+    { texto: "Tiempo que dedicas a estudiar cada día", respuesta: "cont", explicacion: "Puede tomar cualquier valor dentro de un intervalo (1h, 1h 23min…): cuantitativa continua." },
+    { texto: "Longitud de un lápiz",                   respuesta: "cont", explicacion: "Es una medida que admite infinitos valores intermedios: cuantitativa continua." },
+    { texto: "Red social que más utilizas",            respuesta: "cual", explicacion: "Clasifica en categorías sin orden ni valor numérico: cualitativa." },
+    { texto: "Número de goles en un partido",          respuesta: "disc", explicacion: "Solo puede tomar valores enteros no negativos: cuantitativa discreta." },
+    { texto: "Temperatura de una habitación",          respuesta: "cont", explicacion: "Puede tomar cualquier valor real dentro de un rango: cuantitativa continua." },
+    { texto: "País que te gustaría visitar",           respuesta: "cual", explicacion: "Es una categoría nominal sin valor numérico: cualitativa." },
+    { texto: "Número de libros leídos en un mes",      respuesta: "disc", explicacion: "Solo toma valores enteros no negativos: cuantitativa discreta." },
+    { texto: "Cantidad de agua que bebes al día",      respuesta: "cont", explicacion: "Es una magnitud continua que admite cualquier valor positivo: cuantitativa continua." },
+  ];
+
+  const etiquetas = {
+    cual: "Cualitativa",
+    disc: "Cuantitativa discreta",
+    cont: "Cuantitativa continua",
+  };
+
+  const claseSeleccionada = {
+    cual: "selected-cual",
+    disc: "selected-disc",
+    cont: "selected-cont",
+  };
+
+  function construir() {
+    const contenedor = document.getElementById('items');
+    contenedor.innerHTML = '';
+    preguntas.forEach((p, i) => {
+      const div = document.createElement('div');
+      div.className = 'item';
+      div.id = `item-${i}`;
+      div.innerHTML = `
+        <div class="item-question">
+          <span class="item-num">${i + 1}.</span>${p.texto}
+        </div>
+        <div class="options">
+          ${['cual','disc','cont'].map(tipo => `
+            <button class="opt-btn" data-idx="${i}" data-tipo="${tipo}" onclick="seleccionar(${i}, '${tipo}')">
+              ${etiquetas[tipo]}
+            </button>
+          `).join('')}
+        </div>
+        <div class="feedback" id="fb-${i}"></div>
+      `;
+      contenedor.appendChild(div);
+    });
+    document.getElementById('resultado').style.display = 'none';
+  }
+
+  function seleccionar(idx, tipo) {
+    const item = document.getElementById(`item-${idx}`);
+    if (item.classList.contains('corrected-ok') || item.classList.contains('corrected-err')) return;
+    item.querySelectorAll('.opt-btn').forEach(btn => {
+      btn.classList.remove('selected-cual','selected-disc','selected-cont');
+    });
+    const btn = item.querySelector(`[data-tipo="${tipo}"]`);
+    btn.classList.add(claseSeleccionada[tipo]);
+    item.dataset.respuesta = tipo;
+    document.getElementById(`fb-${idx}`).style.display = 'none';
+  }
+
+  function corregir() {
+    let aciertos = 0;
+    preguntas.forEach((p, i) => {
+      const item = document.getElementById(`item-${i}`);
+      const fb = document.getElementById(`fb-${i}`);
+      const elegida = item.dataset.respuesta;
+      item.classList.remove('corrected-ok','corrected-err');
+      if (!elegida) {
+        item.classList.add('corrected-err');
+        fb.className = 'feedback err';
+        fb.textContent = `Sin respuesta. La correcta es: ${etiquetas[p.respuesta]}. ${p.explicacion}`;
+        fb.style.display = 'block';
+        return;
+      }
+      if (elegida === p.respuesta) {
+        aciertos++;
+        item.classList.add('corrected-ok');
+        fb.className = 'feedback ok';
+        fb.textContent = `✓ Correcto. ${p.explicacion}`;
+        fb.style.display = 'block';
+      } else {
+        item.classList.add('corrected-err');
+        fb.className = 'feedback err';
+        fb.textContent = `✗ Incorrecto. La respuesta correcta es: ${etiquetas[p.respuesta]}. ${p.explicacion}`;
+        fb.style.display = 'block';
+      }
+    });
+
+    const res = document.getElementById('resultado');
+    res.style.display = 'block';
+    const total = preguntas.length;
+    if (aciertos === total) {
+      res.className = 'resultado bien';
+      res.innerHTML = `<strong>${aciertos}/${total}</strong> &nbsp;·&nbsp; ¡Perfecto! Has clasificado correctamente todas las variables.`;
+    } else if (aciertos >= total / 2) {
+      res.className = 'resultado regular';
+      res.innerHTML = `<strong>${aciertos}/${total}</strong> &nbsp;·&nbsp; Bien encaminado. Revisa las marcadas en rojo para afianzar los conceptos.`;
+    } else {
+      res.className = 'resultado mal';
+      res.innerHTML = `<strong>${aciertos}/${total}</strong> &nbsp;·&nbsp; Necesitas repasar los tipos de variables. Lee con atención las explicaciones de cada error.`;
+    }
+
+    res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function resetear() {
+    construir();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  construir();
+</script>
+</body>
+</html>
