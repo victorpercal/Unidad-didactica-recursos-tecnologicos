@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Estadística · Unidad didáctica</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1a18;
+      --ink-mid: #4a4a45;
+      --ink-light: #8a8a82;
+      --rule: #d4d0c4;
+      --cream: #f8f6f0;
+      --paper: #ffffff;
+      --accent: #1a3a5c;
+      --accent-light: #e8eef5;
+      --done: #2d5a3d;
+      --done-light: #e8f2ec;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 3.5rem 2rem 3rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+      ), repeating-linear-gradient(
+        90deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+      );
+      pointer-events: none;
+    }
+
+    .header-label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 0.75rem;
+      font-weight: 300;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(2.2rem, 5vw, 3.5rem);
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+      margin-bottom: 0.75rem;
+    }
+
+    header p {
+      font-size: 15px;
+      color: rgba(255,255,255,0.65);
+      font-weight: 300;
+      font-style: italic;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 3rem 1.5rem 4rem;
+    }
+
+    .section-heading {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 13px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-heading::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    .sessions {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      margin-bottom: 3rem;
+    }
+
+    .session {
+      display: grid;
+      grid-template-columns: 56px 1fr auto;
+      align-items: center;
+      gap: 0 1.25rem;
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      padding: 1rem 1.25rem;
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      animation: fadeUp 0.4s both;
+    }
+
+    .session:hover { border-color: var(--accent); box-shadow: 0 2px 12px rgba(26,58,92,0.08); }
+    .session.inactive { pointer-events: none; opacity: 0.5; }
+    .session.completed { border-left: 3px solid var(--done); }
+
+    .session-num {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      font-weight: 400;
+      color: var(--ink-light);
+      text-align: center;
+      line-height: 1;
+    }
+
+    .session.completed .session-num { color: var(--done); }
+
+    .session-title {
+      font-size: 15px;
+      font-weight: 400;
+      margin-bottom: 3px;
+      color: var(--ink);
+    }
+
+    .session-desc {
+      font-size: 13px;
+      color: var(--ink-light);
+      font-style: italic;
+      line-height: 1.4;
+    }
+
+    .session-badge {
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+      font-style: normal;
+    }
+
+    .badge-done { background: var(--done-light); color: var(--done); }
+    .badge-pending { background: var(--cream); color: var(--ink-light); border: 1px solid var(--rule); }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1px;
+      background: var(--rule);
+      border: 1px solid var(--rule);
+      border-radius: 4px;
+      overflow: hidden;
+      margin-bottom: 3rem;
+    }
+
+    .info-cell { background: var(--paper); padding: 1.25rem 1.5rem; }
+    .info-cell .label { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 6px; }
+    .info-cell .value { font-family: 'Playfair Display', Georgia, serif; font-size: 18px; color: var(--ink); }
+
+    .note {
+      border-left: 3px solid var(--accent);
+      background: var(--accent-light);
+      padding: 1rem 1.25rem;
+      border-radius: 0 4px 4px 0;
+      font-size: 14px;
+      color: var(--accent);
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 12px;
+      color: var(--ink-light);
+      border-top: 1px solid var(--rule);
+      font-style: italic;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .session:nth-child(1)  { animation-delay: 0.05s; }
+    .session:nth-child(2)  { animation-delay: 0.10s; }
+    .session:nth-child(3)  { animation-delay: 0.15s; }
+    .session:nth-child(4)  { animation-delay: 0.20s; }
+    .session:nth-child(5)  { animation-delay: 0.25s; }
+    .session:nth-child(6)  { animation-delay: 0.30s; }
+    .session:nth-child(7)  { animation-delay: 0.35s; }
+    .session:nth-child(8)  { animation-delay: 0.40s; }
+    .session:nth-child(9)  { animation-delay: 0.45s; }
+    .session:nth-child(10) { animation-delay: 0.50s; }
+    .session:nth-child(11) { animation-delay: 0.55s; }
+    .session:nth-child(12) { animation-delay: 0.60s; }
+
+    @media (max-width: 540px) {
+      .session { grid-template-columns: 40px 1fr; }
+      .session-badge { display: none; }
+      header { padding: 2.5rem 1.25rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-label">Unidad didáctica · Matemáticas</p>
+  <h1>Estadística</h1>
+  <p>Recursos y materiales interactivos por sesión</p>
+</header>
+
+<main>
+
+  <div class="info-grid">
+    <div class="info-cell">
+      <div class="label">Materia</div>
+      <div class="value">Matemáticas</div>
+    </div>
+    <div class="info-cell">
+      <div class="label">Sesiones</div>
+      <div class="value">12</div>
+    </div>
+    <div class="info-cell">
+      <div class="label">Curso académico</div>
+      <div class="value">2025 – 2026</div>
+    </div>
+  </div>
+
+  <p class="section-heading">Índice de sesiones</p>
+
+  <div class="sessions">
+
+    <a class="session completed" href="sesion-00/index.html">
+      <span class="session-num">0</span>
+      <div class="session-body">
+        <div class="session-title">¿Qué es la estadística?</div>
+        <div class="session-desc">Simulador interactivo de lanzamiento de dado · 30 a 100 lanzamientos</div>
+      </div>
+      <span class="session-badge badge-done">Disponible</span>
+    </a>
+
+    <div class="session inactive">
+      <span class="session-num">1</span>
+      <div class="session-body">
+        <div class="session-title">Variables estadísticas</div>
+        <div class="session-desc">&nbsp;</div>
+      </div>
+      <span class="session-badge badge-pending">Próximamente</span>
+    </div>
+
+    <div class="session inactive">
+      <span class="session-num">2</span>
+      <div class="session-body">
+        <div class="session-title">Los pasos en un estudio estadístico</div>
+        <div class="session-desc">&nbsp;</div>
+      </div>
+      <span class="session-badge badge-pending">Próximamente</span>
+    </div>
+
+    <div class="session inactive">
+      <span class="session-num">3</span>
+      <div class="session-body">
+        <div class="session-title">Las tablas de frecuencia</div>
+        <div class="session-desc">&nbsp;</div>
+      </div>
+      <span class="session-badge badge-pending">Próximamente</span>
+    </div>
+
+    <div class="session inactive">
+      <span class="session-num">4</span>
+      <div class="session-body">
+        <div class="session-title">Gráficos básicos</div>
+        <div class="session-desc">&nbsp;</div>
+      </div>
+      <span class="session-badge badge-pending">Próximamente</span>
+    </div>
+
+    <div class="session inactive">
+      <span class="session-num">5</span>
+      <div class="session-body">
+        <div class="session-title">Interpretación de gráficos</div>
+        <div class="session-desc">&nbsp;</div>
+      </div>
+      <span class="session-badge badge-pending">Próximamente</span>
+    </div>
+
+    <div class="session inactive">
+      <span class="session-num">6</span>
+      <div class="session-body">
+        <div class="session-title">Medidas de centralización. La media</div>
+        <div class="session-desc">&nbsp;</div>
+      </div>
+      <span class="session-badge badge-pending">Próximamente</span>
+    </div>
+
+    <div class="session inactive">
+      <span class="session-num">7</span>
+      <div class="session-body">
+        <div class="session-title">Medidas de centralización. La mediana y la moda</div>
+        <div class="session-desc">&nbsp;</div>
+      </div>
+      <span class="session-badge badge-pending">Próximamente</span>
+    </div>
+
+    <div class="session inactive">
+      <span class="session-num">8</span>
+      <div class="session-body">
+        <div class="session-title">Medidas de dispersión. El rango</div>
+        <div class="session-desc">&nbsp;</div>
+      </div>
+      <span class="session-badge badge-pending">Próximamente</span>
+    </div>
+
+    <div class="session inactive">
+      <span class="session-num">9 – 10</span>
+      <div class="session-body">
+        <div class="session-title">Situación de aprendizaje</div>
+        <div class="session-desc">&nbsp;</div>
+      </div>
+      <span class="session-badge badge-pending">Próximamente</span>
+    </div>
+
+    <div class="session inactive">
+      <span class="session-num">11</span>
+      <div class="session-body">
+        <div class="session-title">Control</div>
+        <div class="session-desc">Sin uso de inteligencia artificial generativa</div>
+      </div>
+      <span class="session-badge badge-pending">Próximamente</span>
+    </div>
+
+  </div>
+
+  <div class="note">
+    Los materiales de cada sesión se irán publicando a lo largo de la unidad. Los recursos marcados como <strong>Disponible</strong> ya pueden consultarse.
+  </div>
+
+</main>
+
+<footer>
+  Unidad didáctica de Estadística · Curso 2025–2026
+</footer>
+
+</body>
+</html>
