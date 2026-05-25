@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sesión 6 · La media</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1a18;
+      --ink-light: #8a8a82;
+      --rule: #d4d0c4;
+      --cream: #f8f6f0;
+      --paper: #ffffff;
+      --accent: #1a3a5c;
+      --accent-light: #e8eef5;
+      --ok: #2d5a3d;
+      --ok-light: #e8f2ec;
+      --err: #8b1a1a;
+      --err-light: #f5e8e8;
+      --warn: #6b4c1a;
+      --warn-light: #f5f0e8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+      ), repeating-linear-gradient(
+        90deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+      );
+      pointer-events: none;
+    }
+
+    .header-label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 0.6rem;
+      font-weight: 300;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      font-style: italic;
+      font-weight: 300;
+    }
+
+    main {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    .instrucciones {
+      border-left: 3px solid var(--accent);
+      background: var(--accent-light);
+      padding: 1rem 1.25rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--accent);
+      line-height: 1.7;
+      margin-bottom: 2.5rem;
+    }
+
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    /* ── Ejercicio card ── */
+    .ejercicio-card {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 10px;
+      padding: 1.75rem 2rem;
+      margin-bottom: 2rem;
+      transition: border-color 0.2s;
+    }
+
+    .ejercicio-card.correcto { border-left: 3px solid var(--ok); }
+    .ejercicio-card.incorrecto { border-left: 3px solid var(--err); }
+
+    .ej-letra {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 15px;
+      color: var(--ink-light);
+      margin-bottom: 0.6rem;
+      letter-spacing: 0.05em;
+    }
+
+    .ej-enunciado {
+      font-size: 15px;
+      line-height: 1.6;
+      margin-bottom: 1rem;
+      color: var(--ink);
+    }
+
+    .datos-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+      margin-bottom: 1.25rem;
+    }
+
+    .chip {
+      background: var(--cream);
+      border: 1px solid var(--rule);
+      border-radius: 20px;
+      padding: 4px 12px;
+      font-size: 14px;
+      font-family: 'Playfair Display', Georgia, serif;
+      color: var(--ink);
+    }
+
+    /* ── Input de respuesta ── */
+    .respuesta-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 1rem;
+    }
+
+    .respuesta-row label {
+      font-size: 14px;
+      color: var(--ink-light);
+      white-space: nowrap;
+    }
+
+    .input-media {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 17px;
+      width: 110px;
+      padding: 7px 10px;
+      border: 1px solid var(--rule);
+      border-radius: 6px;
+      background: var(--cream);
+      color: var(--ink);
+      text-align: center;
+      transition: border-color 0.15s;
+    }
+
+    .input-media:focus { outline: none; border-color: var(--accent); background: var(--paper); }
+    .input-media:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .unidad {
+      font-size: 14px;
+      color: var(--ink-light);
+    }
+
+    .btn-comprobar {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 14px;
+      padding: 8px 20px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .btn-comprobar:hover { background: #0c2840; }
+    .btn-comprobar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Feedback ── */
+    .feedback { display: none; margin-bottom: 1rem; }
+
+    .feedback-ok {
+      background: var(--ok-light);
+      border-left: 3px solid var(--ok);
+      padding: 0.8rem 1rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--ok);
+      line-height: 1.6;
+    }
+
+    .feedback-err {
+      background: var(--err-light);
+      border-left: 3px solid var(--err);
+      padding: 0.8rem 1rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--err);
+      line-height: 1.6;
+      margin-bottom: 0.75rem;
+    }
+
+    .opciones-error {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-reintentar {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 13px;
+      padding: 7px 16px;
+      background: transparent;
+      color: var(--err);
+      border: 1px solid var(--err);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-reintentar:hover { background: var(--err); color: #fff; }
+
+    .btn-ayuda {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 13px;
+      padding: 7px 16px;
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .btn-ayuda:hover { background: var(--accent); color: #fff; }
+
+    /* ── Resolución paso a paso ── */
+    .resolucion {
+      display: none;
+      background: var(--cream);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 0.75rem;
+    }
+
+    .resolucion.visible { display: block; }
+
+    .res-titulo {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 15px;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+
+    .pasos { display: flex; flex-direction: column; gap: 0; }
+
+    .paso {
+      display: grid;
+      grid-template-columns: 28px 1fr;
+      gap: 0 14px;
+      opacity: 0;
+      transform: translateY(6px);
+      transition: opacity 0.3s, transform 0.3s;
+      padding-bottom: 1rem;
+      position: relative;
+    }
+
+    .paso.visible { opacity: 1; transform: translateY(0); }
+
+    .paso-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-family: 'Playfair Display', Georgia, serif;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .paso-body {}
+
+    .paso-label {
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-bottom: 4px;
+    }
+
+    .paso-texto {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--ink);
+    }
+
+    .paso-formula {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 16px;
+      color: var(--accent);
+      margin: 4px 0;
+    }
+
+    .paso-resultado {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+      color: var(--ok);
+      margin-top: 4px;
+    }
+
+    .btn-siguiente-paso {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 13px;
+      padding: 6px 14px;
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: all 0.15s;
+    }
+
+    .btn-siguiente-paso:hover { background: var(--accent); color: #fff; }
+
+    /* ── Resumen final ── */
+    #resumen {
+      display: none;
+      background: var(--ok-light);
+      border: 1px solid #a0c8b0;
+      border-radius: 10px;
+      padding: 1.5rem 2rem;
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    #resumen h2 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+      color: var(--ok);
+      margin-bottom: 0.5rem;
+    }
+
+    #resumen p { font-size: 14px; color: var(--ok); }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 1rem;
+      font-size: 13px;
+      color: var(--ink-light);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 12px;
+      color: var(--ink-light);
+      border-top: 1px solid var(--rule);
+      font-style: italic;
+    }
+
+    @media (max-width: 500px) {
+      .ejercicio-card { padding: 1.25rem; }
+      .respuesta-row { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-label">Sesión 6 · Estadística</p>
+  <h1>Medidas de centralización. La media</h1>
+  <p>Calcula, comprueba y, si lo necesitas, repasa el proceso</p>
+</header>
+
+<main>
+
+  <div class="instrucciones">
+    Para cada apartado, calcula la media aritmética en tu cuaderno y escribe el resultado. Si aciertas, pasas al siguiente. Si fallas, tú decides si quieres <strong>volver a intentarlo</strong> o ver la <strong>resolución paso a paso</strong>.
+  </div>
+
+  <div id="ejercicios"></div>
+
+  <div id="resumen">
+    <h2>¡Ejercicios completados!</h2>
+    <p>Has resuelto correctamente los tres apartados. Puedes repasar los pasos desplegados o volver al índice.</p>
+  </div>
+
+  <a class="back-link" href="../index.html">← Volver al índice</a>
+
+</main>
+
+<footer>
+  Unidad didáctica de Estadística · Curso 2025–2026
+</footer>
+
+<script>
+  const ejercicios = [
+    {
+      letra: 'a',
+      enunciado: 'Temperaturas máximas de la semana pasada:',
+      datos: [21.5, 23.0, 23.5, 22.1, 24.5, 26.0, 25.4, 23.5],
+      unidad: '°C',
+      pasos: (d, media, n, suma) => [
+        {
+          label: 'Identificar los datos',
+          texto: `Tenemos ${n} temperaturas: ${d.join(' °C, ')} °C.`,
+          formula: null,
+        },
+        {
+          label: 'Sumar todos los valores',
+          texto: `Sumamos todas las temperaturas:`,
+          formula: d.join(' + ') + ` = ${suma.toFixed(1)} °C`,
+        },
+        {
+          label: 'Dividir entre el número de datos',
+          texto: `Dividimos la suma entre el número de datos (${n}):`,
+          formula: `${suma.toFixed(1)} ÷ ${n} = ${media.toFixed(2)} °C`,
+        },
+        {
+          label: 'Resultado',
+          texto: 'La media de las temperaturas máximas es:',
+          formula: null,
+          resultado: `x̄ = ${media.toFixed(2)} °C`,
+        },
+      ],
+    },
+    {
+      letra: 'b',
+      enunciado: 'Temperaturas mínimas en invierno:',
+      datos: [-3, -4, 0, 1, -2, -3],
+      unidad: '°C',
+      pasos: (d, media, n, suma) => [
+        {
+          label: 'Identificar los datos',
+          texto: `Tenemos ${n} temperaturas (atención: hay valores negativos): ${d.join(' °C, ')} °C.`,
+          formula: null,
+        },
+        {
+          label: 'Sumar todos los valores',
+          texto: `Sumamos con cuidado los valores negativos:`,
+          formula: d.join(' + ') + ` = ${suma.toFixed(1)} °C`,
+        },
+        {
+          label: 'Dividir entre el número de datos',
+          texto: `Dividimos entre ${n}:`,
+          formula: `(${suma.toFixed(1)}) ÷ ${n} = ${media.toFixed(2)} °C`,
+        },
+        {
+          label: 'Resultado',
+          texto: 'La media de las temperaturas mínimas es:',
+          formula: null,
+          resultado: `x̄ = ${media.toFixed(2)} °C`,
+        },
+      ],
+    },
+    {
+      letra: 'c',
+      enunciado: 'Gastos semanales en transporte:',
+      datos: [120, 110, 45, 80, 0, 110, 65],
+      unidad: '€',
+      pasos: (d, media, n, suma) => [
+        {
+          label: 'Identificar los datos',
+          texto: `Tenemos ${n} valores (incluido un gasto de 0 €, que también cuenta): ${d.join(' €, ')} €.`,
+          formula: null,
+        },
+        {
+          label: 'Sumar todos los valores',
+          texto: `Sumamos todos los gastos:`,
+          formula: d.join(' + ') + ` = ${suma.toFixed(0)} €`,
+        },
+        {
+          label: 'Dividir entre el número de datos',
+          texto: `Dividimos entre ${n}:`,
+          formula: `${suma.toFixed(0)} ÷ ${n} = ${media.toFixed(2)} €`,
+        },
+        {
+          label: 'Resultado',
+          texto: 'El gasto medio semanal en transporte es:',
+          formula: null,
+          resultado: `x̄ = ${media.toFixed(2)} €`,
+        },
+      ],
+    },
+  ];
+
+  let completados = 0;
+
+  function redondear(val) {
+    return Math.round(val * 100) / 100;
+  }
+
+  function construir() {
+    const contenedor = document.getElementById('ejercicios');
+    ejercicios.forEach((ej, idx) => {
+      const n    = ej.datos.length;
+      const suma = ej.datos.reduce((a, b) => a + b, 0);
+      const media = suma / n;
+      const pasos = ej.pasos(ej.datos, media, n, suma);
+
+      const chipsHtml = ej.datos.map(d => `<span class="chip">${d} ${ej.unidad}</span>`).join('');
+      const pasosHtml = pasos.map((p, pi) => `
+        <div class="paso" id="paso-${idx}-${pi}">
+          <div class="paso-num">${pi + 1}</div>
+          <div class="paso-body">
+            <div class="paso-label">${p.label}</div>
+            <div class="paso-texto">${p.texto}</div>
+            ${p.formula ? `<div class="paso-formula">${p.formula}</div>` : ''}
+            ${p.resultado ? `<div class="paso-resultado">${p.resultado}</div>` : ''}
+            ${pi < pasos.length - 1
+              ? `<button class="btn-siguiente-paso" onclick="siguientePaso(${idx}, ${pi + 1})">Siguiente paso →</button>`
+              : ''}
+          </div>
+        </div>
+      `).join('');
+
+      const card = document.createElement('div');
+      card.className = 'ejercicio-card';
+      card.id = `card-${idx}`;
+      card.innerHTML = `
+        <div class="ej-letra">Apartado ${ej.letra})</div>
+        <div class="ej-enunciado">${ej.enunciado}</div>
+        <div class="datos-chips">${chipsHtml}</div>
+        <div class="respuesta-row">
+          <label for="input-${idx}">Media aritmética:</label>
+          <input class="input-media" type="number" step="0.01" id="input-${idx}" placeholder="0,00" />
+          <span class="unidad">${ej.unidad}</span>
+          <button class="btn-comprobar" onclick="comprobar(${idx}, ${media})">Comprobar</button>
+        </div>
+        <div class="feedback" id="feedback-${idx}"></div>
+        <div class="resolucion" id="resolucion-${idx}">
+          <div class="res-titulo">Resolución paso a paso</div>
+          <div class="pasos">${pasosHtml}</div>
+        </div>
+      `;
+      contenedor.appendChild(card);
+
+      // Enter key
+      document.getElementById(`input-${idx}`).addEventListener('keydown', e => {
+        if (e.key === 'Enter') comprobar(idx, media);
+      });
+    });
+  }
+
+  function comprobar(idx, mediaCorrecta) {
+    const input = document.getElementById(`input-${idx}`);
+    const val = parseFloat(input.value.replace(',', '.'));
+    const fb = document.getElementById(`feedback-${idx}`);
+    const card = document.getElementById(`card-${idx}`);
+
+    if (isNaN(val)) {
+      fb.style.display = 'block';
+      fb.innerHTML = `<div class="feedback-err">Introduce un valor numérico.</div>`;
+      return;
+    }
+
+    const correcto = Math.abs(val - mediaCorrecta) < 0.05;
+
+    fb.style.display = 'block';
+
+    if (correcto) {
+      card.classList.add('correcto');
+      card.classList.remove('incorrecto');
+      input.disabled = true;
+      document.querySelector(`#card-${idx} .btn-comprobar`).disabled = true;
+      fb.innerHTML = `
+        <div class="feedback-ok">
+          ✓ Correcto. La media es <strong>${redondear(mediaCorrecta)} ${ejercicios[idx].unidad}</strong>.
+        </div>`;
+      completados++;
+      if (completados === ejercicios.length) {
+        document.getElementById('resumen').style.display = 'block';
+        document.getElementById('resumen').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    } else {
+      card.classList.add('incorrecto');
+      card.classList.remove('correcto');
+      fb.innerHTML = `
+        <div class="feedback-err">
+          ✗ No es correcto. Revisa tu cálculo e inténtalo de nuevo, o consulta la resolución paso a paso.
+        </div>
+        <div class="opciones-error">
+          <button class="btn-reintentar" onclick="reintentar(${idx})">Volver a intentarlo</button>
+          <button class="btn-ayuda" onclick="mostrarAyuda(${idx})">Ver resolución paso a paso</button>
+        </div>`;
+    }
+  }
+
+  function reintentar(idx) {
+    const input = document.getElementById(`input-${idx}`);
+    const fb = document.getElementById(`feedback-${idx}`);
+    const card = document.getElementById(`card-${idx}`);
+    input.value = '';
+    input.focus();
+    fb.style.display = 'none';
+    card.classList.remove('incorrecto');
+  }
+
+  function mostrarAyuda(idx) {
+    const res = document.getElementById(`resolucion-${idx}`);
+    res.classList.add('visible');
+    siguientePaso(idx, 0);
+    res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function siguientePaso(idx, numPaso) {
+    const paso = document.getElementById(`paso-${idx}-${numPaso}`);
+    if (paso) {
+      paso.classList.add('visible');
+      paso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  construir();
+</script>
+
+</body>
+</html>
