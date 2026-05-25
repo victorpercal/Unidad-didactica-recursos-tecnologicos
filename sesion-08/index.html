@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sesión 8 · El rango</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1a18;
+      --ink-light: #8a8a82;
+      --rule: #d4d0c4;
+      --cream: #f8f6f0;
+      --paper: #ffffff;
+      --accent: #1a3a5c;
+      --accent-light: #e8eef5;
+      --ok: #2d5a3d;
+      --ok-light: #e8f2ec;
+      --err: #8b1a1a;
+      --err-light: #f5e8e8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px);
+      pointer-events: none;
+    }
+
+    .header-label {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(255,255,255,0.55); margin-bottom: 0.6rem; font-weight: 300;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 600; margin-bottom: 0.5rem;
+    }
+
+    header p { font-size: 14px; color: rgba(255,255,255,0.6); font-style: italic; font-weight: 300; }
+
+    main { max-width: 780px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    .instrucciones {
+      border-left: 3px solid var(--accent); background: var(--accent-light);
+      padding: 1rem 1.25rem; border-radius: 0 6px 6px 0;
+      font-size: 14px; color: var(--accent); line-height: 1.7; margin-bottom: 2.5rem;
+    }
+
+    .section-label {
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-light); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+    /* ── Card ── */
+    .ejercicio-card {
+      background: var(--paper); border: 1px solid var(--rule);
+      border-radius: 10px; padding: 1.75rem 2rem; margin-bottom: 2rem;
+      transition: border-color 0.2s;
+    }
+    .ejercicio-card.correcto  { border-left: 3px solid var(--ok); }
+    .ejercicio-card.incorrecto { border-left: 3px solid var(--err); }
+
+    .ej-letra { font-family: 'Playfair Display', Georgia, serif; font-size: 15px; color: var(--ink-light); margin-bottom: 0.6rem; }
+    .ej-enunciado { font-size: 15px; line-height: 1.6; margin-bottom: 1rem; }
+
+    .datos-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 1.25rem; }
+    .chip {
+      background: var(--cream); border: 1px solid var(--rule); border-radius: 20px;
+      padding: 4px 12px; font-size: 14px; font-family: 'Playfair Display', Georgia, serif;
+    }
+    .chip.min { background: #f5ede8; border-color: #d4b0a0; color: #6b3a1a; }
+    .chip.max { background: var(--accent-light); border-color: #a8c0d8; color: var(--accent); }
+
+    /* ── Input ── */
+    .respuesta-row {
+      display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 1rem;
+    }
+    .respuesta-row label { font-size: 14px; color: var(--ink-light); white-space: nowrap; }
+
+    .input-rango {
+      font-family: 'Playfair Display', Georgia, serif; font-size: 17px;
+      width: 110px; padding: 7px 10px; border: 1px solid var(--rule);
+      border-radius: 6px; background: var(--cream); color: var(--ink);
+      text-align: center; transition: border-color 0.15s;
+    }
+    .input-rango:focus { outline: none; border-color: var(--accent); background: var(--paper); }
+    .input-rango:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .unidad { font-size: 14px; color: var(--ink-light); }
+
+    .btn-comprobar {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 14px;
+      padding: 8px 20px; background: var(--accent); color: #fff;
+      border: none; border-radius: 6px; cursor: pointer; transition: background 0.15s;
+    }
+    .btn-comprobar:hover { background: #0c2840; }
+    .btn-comprobar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Feedback ── */
+    .feedback { display: none; margin-bottom: 1rem; }
+
+    .feedback-ok {
+      background: var(--ok-light); border-left: 3px solid var(--ok);
+      padding: 0.8rem 1rem; border-radius: 0 6px 6px 0;
+      font-size: 14px; color: var(--ok); line-height: 1.6;
+    }
+
+    .feedback-err {
+      background: var(--err-light); border-left: 3px solid var(--err);
+      padding: 0.8rem 1rem; border-radius: 0 6px 6px 0;
+      font-size: 14px; color: var(--err); line-height: 1.6; margin-bottom: 0.75rem;
+    }
+
+    .opciones-error { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .btn-reintentar {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 13px;
+      padding: 7px 16px; background: transparent; color: var(--err);
+      border: 1px solid var(--err); border-radius: 6px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-reintentar:hover { background: var(--err); color: #fff; }
+
+    .btn-ayuda {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 13px;
+      padding: 7px 16px; background: transparent; color: var(--accent);
+      border: 1px solid var(--accent); border-radius: 6px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-ayuda:hover { background: var(--accent); color: #fff; }
+
+    /* ── Resolución ── */
+    .resolucion {
+      display: none; background: var(--cream); border: 1px solid var(--rule);
+      border-radius: 8px; padding: 1.25rem 1.5rem; margin-top: 0.75rem;
+    }
+    .resolucion.visible { display: block; }
+
+    .res-titulo {
+      font-family: 'Playfair Display', Georgia, serif; font-size: 15px;
+      color: var(--accent); margin-bottom: 1rem;
+    }
+
+    .paso {
+      display: grid; grid-template-columns: 28px 1fr; gap: 0 14px;
+      opacity: 0; transform: translateY(6px);
+      transition: opacity 0.3s, transform 0.3s; padding-bottom: 1rem;
+    }
+    .paso.visible { opacity: 1; transform: translateY(0); }
+
+    .paso-num {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--accent);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-family: 'Playfair Display', Georgia, serif;
+      flex-shrink: 0; margin-top: 2px;
+    }
+
+    .paso-label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 4px; }
+    .paso-texto { font-size: 14px; line-height: 1.6; color: var(--ink); }
+    .paso-formula { font-family: 'Playfair Display', Georgia, serif; font-size: 16px; color: var(--accent); margin: 6px 0; }
+    .paso-resultado { font-family: 'Playfair Display', Georgia, serif; font-size: 18px; color: var(--ok); margin-top: 4px; }
+
+    .chips-ordenados { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+
+    .btn-siguiente-paso {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 13px;
+      padding: 6px 14px; background: transparent; color: var(--accent);
+      border: 1px solid var(--accent); border-radius: 6px; cursor: pointer;
+      margin-top: 10px; transition: all 0.15s;
+    }
+    .btn-siguiente-paso:hover { background: var(--accent); color: #fff; }
+
+    /* ── Parte 2 ── */
+    .parte2 {
+      margin-top: 3rem; background: var(--paper); border: 1px solid var(--rule);
+      border-radius: 10px; padding: 1.75rem 2rem;
+    }
+
+    .parte2-titulo {
+      font-family: 'Playfair Display', Georgia, serif; font-size: 18px;
+      color: var(--accent); margin-bottom: 0.5rem;
+    }
+
+    .parte2-desc {
+      font-size: 14px; color: var(--ink-light); line-height: 1.6;
+      margin-bottom: 1.5rem; font-style: italic;
+    }
+
+    .reflexion-item {
+      margin-bottom: 1.5rem; border-bottom: 1px solid var(--rule); padding-bottom: 1.5rem;
+    }
+    .reflexion-item:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+
+    .reflexion-label { font-size: 14px; margin-bottom: 0.75rem; line-height: 1.5; }
+
+    .opciones-util { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+
+    .opt-util {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 13px;
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--rule);
+      background: var(--cream); color: var(--ink-light); cursor: pointer; transition: all 0.15s;
+    }
+    .opt-util:hover { border-color: var(--accent); color: var(--accent); }
+    .opt-util.seleccionada { background: var(--accent-light); border-color: #a8c0d8; color: var(--accent); }
+
+    .justificacion-wrap label {
+      display: block; font-size: 13px; color: var(--ink-light);
+      margin-bottom: 6px; font-style: italic;
+    }
+
+    textarea {
+      width: 100%; font-family: 'Source Serif 4', Georgia, serif; font-size: 14px;
+      color: var(--ink); background: var(--cream); border: 1px solid var(--rule);
+      border-radius: 6px; padding: 10px 12px; resize: vertical; min-height: 70px;
+      transition: border-color 0.15s; line-height: 1.6;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); background: var(--paper); }
+
+    .btn-ver-orientacion {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 13px;
+      padding: 7px 16px; background: transparent; color: var(--ink-light);
+      border: 1px solid var(--rule); border-radius: 6px; cursor: pointer;
+      margin-top: 0.75rem; transition: all 0.15s; display: block;
+    }
+    .btn-ver-orientacion:hover { border-color: var(--accent); color: var(--accent); }
+
+    .orientacion {
+      display: none; margin-top: 0.75rem;
+      background: var(--ok-light); border-left: 3px solid var(--ok);
+      padding: 0.9rem 1.1rem; border-radius: 0 6px 6px 0;
+      font-size: 14px; color: var(--ok); line-height: 1.7;
+    }
+    .orientacion.visible { display: block; }
+
+    /* ── Resumen ── */
+    #resumen {
+      display: none; background: var(--ok-light); border: 1px solid #a0c8b0;
+      border-radius: 10px; padding: 1.5rem 2rem; text-align: center; margin-bottom: 2rem;
+    }
+    #resumen h2 { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: var(--ok); margin-bottom: 0.5rem; }
+    #resumen p { font-size: 14px; color: var(--ok); }
+
+    .back-link {
+      display: inline-block; margin-top: 1rem; font-size: 13px;
+      color: var(--ink-light); text-decoration: none; border-bottom: 1px solid var(--rule);
+    }
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    footer {
+      text-align: center; padding: 2rem; font-size: 12px;
+      color: var(--ink-light); border-top: 1px solid var(--rule); font-style: italic;
+    }
+
+    @media (max-width: 500px) {
+      .ejercicio-card { padding: 1.25rem; }
+      .respuesta-row { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-label">Sesión 8 · Estadística</p>
+  <h1>Medidas de dispersión. El rango</h1>
+  <p>Calcula el rango y valora su utilidad como medida de dispersión</p>
+</header>
+
+<main>
+
+  <div class="instrucciones">
+    <strong>Parte 1.</strong> Calcula el rango de cada conjunto de datos. Recuerda: <em>Rango = valor máximo − valor mínimo</em>. Los valores mínimo y máximo aparecen destacados en los chips de datos.<br><br>
+    <strong>Parte 2.</strong> Reflexiona sobre si el rango aporta información útil en cada caso y justifica tu respuesta.
+  </div>
+
+  <p class="section-label">Parte 1 · Cálculo del rango</p>
+
+  <div id="ejercicios"></div>
+
+  <div id="resumen">
+    <h2>¡Parte 1 completada!</h2>
+    <p>Has calculado correctamente el rango de los tres apartados. Continúa con la parte 2.</p>
+  </div>
+
+  <!-- PARTE 2 -->
+  <div class="parte2">
+    <div class="parte2-titulo">Parte 2 · ¿Aporta información el rango?</div>
+    <div class="parte2-desc">El rango es una medida sencilla, pero no siempre es la más informativa. Para cada apartado, decide si el rango te parece una medida útil y justifica tu respuesta.</div>
+
+    <div class="reflexion-item">
+      <div class="reflexion-label"><strong>a)</strong> Temperaturas máximas (rango = 4,5 °C). ¿Es el rango informativo en este caso?</div>
+      <div class="opciones-util">
+        <button class="opt-util" onclick="elegir(this)">Sí, es informativo</button>
+        <button class="opt-util" onclick="elegir(this)">Solo parcialmente</button>
+        <button class="opt-util" onclick="elegir(this)">No es muy informativo</button>
+      </div>
+      <div class="justificacion-wrap">
+        <label>Justifica tu elección:</label>
+        <textarea placeholder="Explica tu razonamiento…"></textarea>
+      </div>
+      <button class="btn-ver-orientacion" onclick="mostrarOrientacion('or-a', this)">Ver orientación del profesor</button>
+      <div class="orientacion" id="or-a">
+        El rango de 4,5 °C es <strong>moderadamente informativo</strong>. Nos dice que las temperaturas variaron casi 5 grados a lo largo de la semana, lo cual es un dato relevante. Sin embargo, no nos informa de si esa variación fue gradual o concentrada en un par de días. En conjuntos con pocos datos atípicos, como este, el rango funciona razonablemente bien.
+      </div>
+    </div>
+
+    <div class="reflexion-item">
+      <div class="reflexion-label"><strong>b)</strong> Temperaturas mínimas (rango = 5 °C). ¿Es el rango informativo en este caso?</div>
+      <div class="opciones-util">
+        <button class="opt-util" onclick="elegir(this)">Sí, es informativo</button>
+        <button class="opt-util" onclick="elegir(this)">Solo parcialmente</button>
+        <button class="opt-util" onclick="elegir(this)">No es muy informativo</button>
+      </div>
+      <div class="justificacion-wrap">
+        <label>Justifica tu elección:</label>
+        <textarea placeholder="Explica tu razonamiento…"></textarea>
+      </div>
+      <button class="btn-ver-orientacion" onclick="mostrarOrientacion('or-b', this)">Ver orientación del profesor</button>
+      <div class="orientacion" id="or-b">
+        El rango de 5 °C es <strong>solo parcialmente informativo</strong>. El valor 1 °C es el único positivo de todo el conjunto y actúa como dato atípico. Sin él, el rango sería de solo 4 °C (de −4 a 0). Esto ilustra una limitación importante del rango: <strong>depende exclusivamente de los dos valores extremos</strong> y puede quedar distorsionado por un único dato excepcional, sin reflejar bien la dispersión del resto.
+      </div>
+    </div>
+
+    <div class="reflexion-item">
+      <div class="reflexion-label"><strong>c)</strong> Gastos en transporte (rango = 120 €). ¿Es el rango informativo en este caso?</div>
+      <div class="opciones-util">
+        <button class="opt-util" onclick="elegir(this)">Sí, es informativo</button>
+        <button class="opt-util" onclick="elegir(this)">Solo parcialmente</button>
+        <button class="opt-util" onclick="elegir(this)">No es muy informativo</button>
+      </div>
+      <div class="justificacion-wrap">
+        <label>Justifica tu elección:</label>
+        <textarea placeholder="Explica tu razonamiento…"></textarea>
+      </div>
+      <button class="btn-ver-orientacion" onclick="mostrarOrientacion('or-c', this)">Ver orientación del profesor</button>
+      <div class="orientacion" id="or-c">
+        El rango de 120 € es <strong>poco informativo</strong> aquí. Los extremos son 0 € (una semana sin gastar nada en transporte, probablemente excepcional) y 120 €. Si ignoramos esos dos extremos, los demás datos van de 45 € a 110 €, un rango de 65 €. Esto demuestra que el rango puede <strong>exagerar la dispersión real</strong> cuando hay valores atípicos. En este caso, otras medidas de dispersión (como la desviación típica) serían más representativas.
+      </div>
+    </div>
+  </div>
+
+  <a class="back-link" href="../index.html">← Volver al índice</a>
+
+</main>
+
+<footer>
+  Unidad didáctica de Estadística · Curso 2025–2026
+</footer>
+
+<script>
+  const ejercicios = [
+    {
+      letra: 'a',
+      enunciado: 'Temperaturas máximas de la semana pasada:',
+      datos: [21.5, 23.0, 23.5, 22.1, 24.5, 26.0, 25.4, 23.5],
+      unidad: '°C',
+    },
+    {
+      letra: 'b',
+      enunciado: 'Temperaturas mínimas en invierno:',
+      datos: [-3, -4, 0, 1, -2, -3],
+      unidad: '°C',
+    },
+    {
+      letra: 'c',
+      enunciado: 'Gastos semanales en transporte:',
+      datos: [120, 110, 45, 80, 0, 110, 65],
+      unidad: '€',
+    },
+  ];
+
+  let completados = 0;
+
+  function construir() {
+    const contenedor = document.getElementById('ejercicios');
+
+    ejercicios.forEach((ej, idx) => {
+      const min = Math.min(...ej.datos);
+      const max = Math.max(...ej.datos);
+      const rango = parseFloat((max - min).toFixed(2));
+
+      const chipsHtml = ej.datos.map(d => {
+        const esMin = d === min;
+        const esMax = d === max;
+        const clase = esMin ? ' min' : esMax ? ' max' : '';
+        return `<span class="chip${clase}" title="${esMin ? 'Valor mínimo' : esMax ? 'Valor máximo' : ''}">${d} ${ej.unidad}</span>`;
+      }).join('');
+
+      const pasos = [
+        {
+          label: 'Identificar el valor mínimo y el máximo',
+          texto: `Revisamos todos los datos y localizamos los extremos (marcados en color):`,
+          extra: `<div class="chips-ordenados">${chipsHtml}</div>
+                  <div style="margin-top:8px;font-size:13px;color:var(--ink-light);">
+                    <span style="color:#6b3a1a;">■</span> Mínimo: ${min} ${ej.unidad} &nbsp;·&nbsp;
+                    <span style="color:var(--accent);">■</span> Máximo: ${max} ${ej.unidad}
+                  </div>`,
+        },
+        {
+          label: 'Aplicar la fórmula del rango',
+          texto: 'El rango es la diferencia entre el valor máximo y el mínimo:',
+          formula: `Rango = ${max} − (${min}) = ${rango} ${ej.unidad}`,
+          resultado: `Rango = ${rango} ${ej.unidad}`,
+        },
+      ];
+
+      const pasosHtml = pasos.map((p, pi) => `
+        <div class="paso" id="paso-${idx}-${pi}">
+          <div class="paso-num">${pi + 1}</div>
+          <div class="paso-body">
+            <div class="paso-label">${p.label}</div>
+            <div class="paso-texto">${p.texto}</div>
+            ${p.extra || ''}
+            ${p.formula ? `<div class="paso-formula">${p.formula}</div>` : ''}
+            ${p.resultado ? `<div class="paso-resultado">${p.resultado}</div>` : ''}
+            ${pi < pasos.length - 1
+              ? `<button class="btn-siguiente-paso" onclick="siguientePaso(${idx}, ${pi + 1})">Siguiente paso →</button>`
+              : ''}
+          </div>
+        </div>
+      `).join('');
+
+      const card = document.createElement('div');
+      card.className = 'ejercicio-card';
+      card.id = `card-${idx}`;
+      card.innerHTML = `
+        <div class="ej-letra">Apartado ${ej.letra})</div>
+        <div class="ej-enunciado">${ej.enunciado}</div>
+        <div class="datos-chips">${chipsHtml}</div>
+        <div class="respuesta-row">
+          <label for="input-${idx}">Rango:</label>
+          <input class="input-rango" type="number" step="0.01" id="input-${idx}" placeholder="0,00" />
+          <span class="unidad">${ej.unidad}</span>
+          <button class="btn-comprobar" onclick="comprobar(${idx}, ${rango})">Comprobar</button>
+        </div>
+        <div class="feedback" id="feedback-${idx}"></div>
+        <div class="resolucion" id="resolucion-${idx}">
+          <div class="res-titulo">Resolución paso a paso</div>
+          <div class="pasos">${pasosHtml}</div>
+        </div>
+      `;
+      contenedor.appendChild(card);
+
+      document.getElementById(`input-${idx}`)?.addEventListener('keydown', e => {
+        if (e.key === 'Enter') comprobar(idx, rango);
+      });
+    });
+  }
+
+  function comprobar(idx, rangoCorrect) {
+    const input = document.getElementById(`input-${idx}`);
+    const fb = document.getElementById(`feedback-${idx}`);
+    const card = document.getElementById(`card-${idx}`);
+    const val = parseFloat(input.value.replace(',', '.'));
+
+    if (isNaN(val)) {
+      fb.style.display = 'block';
+      fb.innerHTML = `<div class="feedback-err">Introduce un valor numérico.</div>`;
+      return;
+    }
+
+    const correcto = Math.abs(val - rangoCorrect) < 0.05;
+    fb.style.display = 'block';
+
+    if (correcto) {
+      card.classList.add('correcto'); card.classList.remove('incorrecto');
+      input.disabled = true;
+      card.querySelector('.btn-comprobar').disabled = true;
+      fb.innerHTML = `<div class="feedback-ok">✓ Correcto. El rango es <strong>${rangoCorrect} ${ejercicios[idx].unidad}</strong>.</div>`;
+      completados++;
+      if (completados === ejercicios.length) {
+        document.getElementById('resumen').style.display = 'block';
+        document.getElementById('resumen').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    } else {
+      card.classList.add('incorrecto'); card.classList.remove('correcto');
+      fb.innerHTML = `
+        <div class="feedback-err">✗ No es correcto. Recuerda: Rango = máximo − mínimo.</div>
+        <div class="opciones-error">
+          <button class="btn-reintentar" onclick="reintentar(${idx})">Volver a intentarlo</button>
+          <button class="btn-ayuda" onclick="mostrarAyuda(${idx})">Ver resolución paso a paso</button>
+        </div>`;
+    }
+  }
+
+  function reintentar(idx) {
+    const input = document.getElementById(`input-${idx}`);
+    const fb = document.getElementById(`feedback-${idx}`);
+    const card = document.getElementById(`card-${idx}`);
+    input.value = '';
+    input.focus();
+    fb.style.display = 'none';
+    card.classList.remove('incorrecto');
+  }
+
+  function mostrarAyuda(idx) {
+    const res = document.getElementById(`resolucion-${idx}`);
+    res.classList.add('visible');
+    siguientePaso(idx, 0);
+    res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function siguientePaso(idx, num) {
+    const paso = document.getElementById(`paso-${idx}-${num}`);
+    if (paso) {
+      paso.classList.add('visible');
+      paso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  function elegir(btn) {
+    btn.closest('.opciones-util').querySelectorAll('.opt-util').forEach(b => b.classList.remove('seleccionada'));
+    btn.classList.add('seleccionada');
+  }
+
+  function mostrarOrientacion(id, btn) {
+    const el = document.getElementById(id);
+    el.classList.toggle('visible');
+    btn.textContent = el.classList.contains('visible') ? 'Ocultar orientación' : 'Ver orientación del profesor';
+  }
+
+  construir();
+</script>
+
+</body>
+</html>
