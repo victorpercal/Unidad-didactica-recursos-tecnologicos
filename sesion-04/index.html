@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sesión 4 · Diagrama de sectores</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    :root {
+      --ink: #1a1a18;
+      --ink-light: #8a8a82;
+      --rule: #d4d0c4;
+      --cream: #f8f6f0;
+      --paper: #ffffff;
+      --accent: #1a3a5c;
+      --accent-light: #e8eef5;
+      --cara: #2d5a3d;
+      --cara-light: #e8f2ec;
+      --cruz: #6b3a1a;
+      --cruz-light: #f5ede8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: repeating-linear-gradient(
+        0deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+      ), repeating-linear-gradient(
+        90deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px
+      );
+      pointer-events: none;
+    }
+
+    .header-label {
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.55);
+      margin-bottom: 0.6rem;
+      font-weight: 300;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    header p {
+      font-size: 14px;
+      color: rgba(255,255,255,0.6);
+      font-style: italic;
+      font-weight: 300;
+    }
+
+    main {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 2.5rem 1.5rem 4rem;
+    }
+
+    .section-label {
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--rule);
+    }
+
+    /* ── Sin datos ── */
+    .sin-datos {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 2rem 1.5rem;
+      text-align: center;
+      color: var(--ink-light);
+      font-style: italic;
+      font-size: 15px;
+      margin-bottom: 2rem;
+    }
+
+    .sin-datos a {
+      color: var(--accent);
+      text-decoration: none;
+      border-bottom: 1px solid var(--accent);
+    }
+
+    /* ── Resumen datos ── */
+    .datos-resumen {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+
+    .dato-card {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      text-align: center;
+    }
+
+    .dato-card .dc-label {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ink-light);
+      margin-bottom: 6px;
+    }
+
+    .dato-card .dc-valor {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 22px;
+    }
+
+    .dc-cara { color: var(--cara); }
+    .dc-cruz { color: var(--cruz); }
+    .dc-total { color: var(--accent); }
+
+    /* ── Tabla ── */
+    #tabla-wrap { margin-bottom: 2.5rem; }
+
+    .tabla-container {
+      overflow-x: auto;
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      background: var(--paper);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    thead tr { background: var(--accent); color: #fff; }
+
+    thead th {
+      padding: 12px 16px;
+      text-align: center;
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 400;
+      font-size: 13px;
+      letter-spacing: 0.04em;
+    }
+
+    tbody tr { border-bottom: 1px solid var(--rule); }
+    tbody tr:last-child { border-bottom: none; }
+
+    tbody td {
+      padding: 13px 16px;
+      text-align: center;
+      vertical-align: middle;
+    }
+
+    .td-resultado {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: 18px;
+    }
+
+    .td-cara { color: var(--cara); }
+    .td-cruz { color: var(--cruz); }
+
+    tfoot tr { background: var(--cream); border-top: 2px solid var(--rule); }
+    tfoot td {
+      padding: 10px 16px;
+      text-align: center;
+      font-size: 13px;
+      color: var(--ink-light);
+      font-style: italic;
+    }
+    tfoot td:first-child { text-align: left; font-style: normal; color: var(--ink); }
+
+    /* ── Ángulo — columna extra ── */
+    .angulo-label { font-style: italic; font-size: 12px; color: rgba(255,255,255,0.8); }
+
+    /* ── Gráfico ── */
+    #grafico-wrap { margin-bottom: 2.5rem; }
+
+    .grafico-box {
+      background: var(--paper);
+      border: 1px solid var(--rule);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .leyenda {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .leyenda-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 13px;
+      color: var(--ink-light);
+    }
+
+    .leyenda-dot {
+      width: 13px;
+      height: 13px;
+      border-radius: 3px;
+    }
+
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      max-width: 380px;
+      margin: 0 auto;
+      height: 340px;
+    }
+
+    /* ── Explicación ángulos ── */
+    .nota {
+      border-left: 3px solid var(--accent);
+      background: var(--accent-light);
+      padding: 1rem 1.25rem;
+      border-radius: 0 6px 6px 0;
+      font-size: 14px;
+      color: var(--accent);
+      line-height: 1.7;
+      margin-bottom: 2rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 1rem;
+      font-size: 13px;
+      color: var(--ink-light);
+      text-decoration: none;
+      border-bottom: 1px solid var(--rule);
+    }
+
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    .btn-volver {
+      font-family: 'Source Serif 4', Georgia, serif;
+      font-size: 14px;
+      padding: 9px 20px;
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid var(--accent);
+      border-radius: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin-bottom: 2rem;
+      transition: all 0.15s;
+    }
+
+    .btn-volver:hover { background: var(--accent); color: #fff; }
+
+    footer {
+      text-align: center;
+      padding: 2rem;
+      font-size: 12px;
+      color: var(--ink-light);
+      border-top: 1px solid var(--rule);
+      font-style: italic;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-label">Sesión 4 · Estadística</p>
+  <h1>Diagrama de sectores</h1>
+  <p>Representación gráfica de la tabla de frecuencias</p>
+</header>
+
+<main id="main">
+
+  <div id="contenido"></div>
+
+  <a class="back-link" href="../index.html">← Volver al índice</a>
+
+</main>
+
+<footer>
+  Unidad didáctica de Estadística · Curso 2025–2026
+</footer>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const n    = parseInt(params.get('n'));
+  const cara = parseInt(params.get('cara'));
+  const cruz = parseInt(params.get('cruz'));
+
+  const contenido = document.getElementById('contenido');
+
+  if (!n || isNaN(cara) || isNaN(cruz)) {
+    contenido.innerHTML = `
+      <div class="sin-datos">
+        No hay datos cargados. Ve primero a la
+        <a href="../sesion-03/index.html">sesión 3</a>,
+        realiza el lanzamiento de moneda y pulsa el botón
+        <em>Continuar a la sesión 4</em>.
+      </div>
+    `;
+  } else {
+    const fCara   = cara / n;
+    const fCruz   = cruz / n;
+    const pCara   = fCara * 100;
+    const pCruz   = fCruz * 100;
+    const angCara = fCara * 360;
+    const angCruz = fCruz * 360;
+
+    contenido.innerHTML = `
+      <a class="btn-volver" href="../sesion-03/index.html">← Volver a la sesión 3</a>
+
+      <div class="datos-resumen">
+        <div class="dato-card">
+          <div class="dc-label">Total lanzamientos</div>
+          <div class="dc-valor dc-total">${n}</div>
+        </div>
+        <div class="dato-card">
+          <div class="dc-label">Caras</div>
+          <div class="dc-valor dc-cara">${cara}</div>
+        </div>
+        <div class="dato-card">
+          <div class="dc-label">Cruces</div>
+          <div class="dc-valor dc-cruz">${cruz}</div>
+        </div>
+      </div>
+
+      <div id="tabla-wrap">
+        <p class="section-label">Tabla de frecuencias con ángulos</p>
+        <div class="tabla-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Resultado</th>
+                <th>Frec. absoluta</th>
+                <th>Frec. relativa</th>
+                <th>Porcentaje</th>
+                <th>Ángulo <span class="angulo-label">(frec. rel. × 360°)</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="td-resultado td-cara">Cara</td>
+                <td>${cara}</td>
+                <td>${fCara.toFixed(4)}</td>
+                <td>${pCara.toFixed(2)}%</td>
+                <td>${angCara.toFixed(2)}°</td>
+              </tr>
+              <tr>
+                <td class="td-resultado td-cruz">Cruz</td>
+                <td>${cruz}</td>
+                <td>${fCruz.toFixed(4)}</td>
+                <td>${pCruz.toFixed(2)}%</td>
+                <td>${angCruz.toFixed(2)}°</td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td>Total</td>
+                <td>${n}</td>
+                <td>1,0000</td>
+                <td>100,00%</td>
+                <td>360,00°</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+
+      <div id="grafico-wrap">
+        <p class="section-label">Diagrama de sectores</p>
+        <div class="grafico-box">
+          <div class="leyenda">
+            <div class="leyenda-item">
+              <div class="leyenda-dot" style="background:#2d5a3d;"></div>
+              Cara — ${pCara.toFixed(2)}%
+            </div>
+            <div class="leyenda-item">
+              <div class="leyenda-dot" style="background:#6b3a1a;"></div>
+              Cruz — ${pCruz.toFixed(2)}%
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="pieChart" role="img" aria-label="Diagrama de sectores: Cara ${pCara.toFixed(2)}%, Cruz ${pCruz.toFixed(2)}%">
+              Cara: ${pCara.toFixed(2)}%, Cruz: ${pCruz.toFixed(2)}%
+            </canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="nota">
+        <strong>¿Cómo se construye el diagrama de sectores?</strong><br>
+        Cada sector ocupa un ángulo proporcional a su frecuencia relativa. Como el círculo completo mide 360°,
+        el ángulo de cada sector se calcula multiplicando su frecuencia relativa por 360°.<br><br>
+        Con tus datos:<br>
+        · Cara: ${fCara.toFixed(4)} × 360° = <strong>${angCara.toFixed(2)}°</strong><br>
+        · Cruz: ${fCruz.toFixed(4)} × 360° = <strong>${angCruz.toFixed(2)}°</strong><br>
+        · Suma: ${angCara.toFixed(2)}° + ${angCruz.toFixed(2)}° = <strong>360,00°</strong>
+      </div>
+    `;
+
+    new Chart(document.getElementById('pieChart'), {
+      type: 'pie',
+      data: {
+        labels: ['Cara', 'Cruz'],
+        datasets: [{
+          data: [cara, cruz],
+          backgroundColor: ['#2d5a3d', '#6b3a1a'],
+          borderColor: ['#ffffff', '#ffffff'],
+          borderWidth: 3,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            callbacks: {
+              label: ctx => {
+                const val = ctx.parsed;
+                const pct = (val / n * 100).toFixed(2);
+                return ` ${ctx.label}: ${val} (${pct}%)`;
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+</script>
+
+</body>
+</html>
