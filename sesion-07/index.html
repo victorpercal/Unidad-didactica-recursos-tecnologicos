@@ -1,0 +1,624 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sesión 7 · Mediana y moda</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1a1a18;
+      --ink-light: #8a8a82;
+      --rule: #d4d0c4;
+      --cream: #f8f6f0;
+      --paper: #ffffff;
+      --accent: #1a3a5c;
+      --accent-light: #e8eef5;
+      --ok: #2d5a3d;
+      --ok-light: #e8f2ec;
+      --err: #8b1a1a;
+      --err-light: #f5e8e8;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Source Serif 4', Georgia, serif;
+      background: var(--cream);
+      color: var(--ink);
+      min-height: 100vh;
+    }
+
+    header {
+      background: var(--accent);
+      color: #fff;
+      padding: 3rem 2rem 2.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    header::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image:
+        repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px),
+        repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.04) 39px, rgba(255,255,255,0.04) 40px);
+      pointer-events: none;
+    }
+
+    .header-label {
+      font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: rgba(255,255,255,0.55); margin-bottom: 0.6rem; font-weight: 300;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-size: clamp(1.6rem, 4vw, 2.6rem); font-weight: 600; margin-bottom: 0.5rem;
+    }
+
+    header p { font-size: 14px; color: rgba(255,255,255,0.6); font-style: italic; font-weight: 300; }
+
+    main { max-width: 780px; margin: 0 auto; padding: 2.5rem 1.5rem 4rem; }
+
+    .instrucciones {
+      border-left: 3px solid var(--accent); background: var(--accent-light);
+      padding: 1rem 1.25rem; border-radius: 0 6px 6px 0;
+      font-size: 14px; color: var(--accent); line-height: 1.7; margin-bottom: 2.5rem;
+    }
+
+    .section-label {
+      font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+      color: var(--ink-light); margin-bottom: 14px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .section-label::after { content: ''; flex: 1; height: 1px; background: var(--rule); }
+
+    /* ── Card ── */
+    .ejercicio-card {
+      background: var(--paper); border: 1px solid var(--rule);
+      border-radius: 10px; padding: 1.75rem 2rem; margin-bottom: 2rem;
+      transition: border-color 0.2s;
+    }
+    .ejercicio-card.correcto  { border-left: 3px solid var(--ok); }
+    .ejercicio-card.incorrecto { border-left: 3px solid var(--err); }
+
+    .ej-letra { font-family: 'Playfair Display', Georgia, serif; font-size: 15px; color: var(--ink-light); margin-bottom: 0.6rem; }
+    .ej-enunciado { font-size: 15px; line-height: 1.6; margin-bottom: 1rem; }
+
+    .datos-chips { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 1.25rem; }
+    .chip {
+      background: var(--cream); border: 1px solid var(--rule); border-radius: 20px;
+      padding: 4px 12px; font-size: 14px; font-family: 'Playfair Display', Georgia, serif;
+    }
+    .chip.mediana-pos { background: #e8eef5; border-color: #a8c0d8; color: var(--accent); }
+
+    /* ── Inputs ── */
+    .inputs-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 1rem;
+    }
+
+    .input-group label {
+      display: block; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase;
+      color: var(--ink-light); margin-bottom: 6px;
+    }
+
+    .input-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .input-medida {
+      font-family: 'Playfair Display', Georgia, serif; font-size: 16px;
+      width: 100px; padding: 7px 10px; border: 1px solid var(--rule);
+      border-radius: 6px; background: var(--cream); color: var(--ink);
+      text-align: center; transition: border-color 0.15s;
+    }
+    .input-medida:focus { outline: none; border-color: var(--accent); background: var(--paper); }
+    .input-medida:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .unidad { font-size: 13px; color: var(--ink-light); }
+
+    .moda-hint { font-size: 12px; color: var(--ink-light); font-style: italic; margin-top: 4px; }
+
+    .btn-comprobar {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 14px;
+      padding: 9px 22px; background: var(--accent); color: #fff;
+      border: none; border-radius: 6px; cursor: pointer; transition: background 0.15s;
+      margin-top: 0.5rem;
+    }
+    .btn-comprobar:hover { background: #0c2840; }
+    .btn-comprobar:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* ── Feedback ── */
+    .feedback { display: none; margin-bottom: 1rem; }
+
+    .feedback-ok {
+      background: var(--ok-light); border-left: 3px solid var(--ok);
+      padding: 0.8rem 1rem; border-radius: 0 6px 6px 0;
+      font-size: 14px; color: var(--ok); line-height: 1.6;
+    }
+
+    .feedback-err {
+      background: var(--err-light); border-left: 3px solid var(--err);
+      padding: 0.8rem 1rem; border-radius: 0 6px 6px 0;
+      font-size: 14px; color: var(--err); line-height: 1.6; margin-bottom: 0.75rem;
+    }
+
+    .opciones-error { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    .btn-reintentar {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 13px;
+      padding: 7px 16px; background: transparent; color: var(--err);
+      border: 1px solid var(--err); border-radius: 6px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-reintentar:hover { background: var(--err); color: #fff; }
+
+    .btn-ayuda {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 13px;
+      padding: 7px 16px; background: transparent; color: var(--accent);
+      border: 1px solid var(--accent); border-radius: 6px; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-ayuda:hover { background: var(--accent); color: #fff; }
+
+    /* ── Resolución ── */
+    .resolucion {
+      display: none; background: var(--cream); border: 1px solid var(--rule);
+      border-radius: 8px; padding: 1.25rem 1.5rem; margin-top: 0.75rem;
+    }
+    .resolucion.visible { display: block; }
+
+    .res-titulo { font-family: 'Playfair Display', Georgia, serif; font-size: 15px; color: var(--accent); margin-bottom: 1rem; }
+
+    .paso {
+      display: grid; grid-template-columns: 28px 1fr; gap: 0 14px;
+      opacity: 0; transform: translateY(6px);
+      transition: opacity 0.3s, transform 0.3s; padding-bottom: 1rem;
+    }
+    .paso.visible { opacity: 1; transform: translateY(0); }
+
+    .paso-num {
+      width: 28px; height: 28px; border-radius: 50%; background: var(--accent);
+      color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-family: 'Playfair Display', Georgia, serif; flex-shrink: 0; margin-top: 2px;
+    }
+
+    .paso-label { font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 4px; }
+    .paso-texto { font-size: 14px; line-height: 1.6; color: var(--ink); }
+    .paso-formula { font-family: 'Playfair Display', Georgia, serif; font-size: 15px; color: var(--accent); margin: 4px 0; }
+    .paso-resultado { font-family: 'Playfair Display', Georgia, serif; font-size: 18px; color: var(--ok); margin-top: 4px; }
+
+    .chips-ordenados { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+
+    .btn-siguiente-paso {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 13px;
+      padding: 6px 14px; background: transparent; color: var(--accent);
+      border: 1px solid var(--accent); border-radius: 6px; cursor: pointer;
+      margin-top: 10px; transition: all 0.15s;
+    }
+    .btn-siguiente-paso:hover { background: var(--accent); color: #fff; }
+
+    /* ── Parte 2: elección de medida ── */
+    .parte2 {
+      margin-top: 3rem; background: var(--paper); border: 1px solid var(--rule);
+      border-radius: 10px; padding: 1.75rem 2rem;
+    }
+
+    .parte2-titulo {
+      font-family: 'Playfair Display', Georgia, serif; font-size: 18px;
+      color: var(--accent); margin-bottom: 0.5rem;
+    }
+
+    .parte2-desc { font-size: 14px; color: var(--ink-light); line-height: 1.6; margin-bottom: 1.5rem; font-style: italic; }
+
+    .eleccion-item { margin-bottom: 1.5rem; border-bottom: 1px solid var(--rule); padding-bottom: 1.5rem; }
+    .eleccion-item:last-child { border-bottom: none; padding-bottom: 0; margin-bottom: 0; }
+
+    .eleccion-label { font-size: 14px; margin-bottom: 0.75rem; line-height: 1.5; }
+
+    .opciones-medida { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 0.75rem; }
+
+    .opt-medida {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 13px;
+      padding: 6px 16px; border-radius: 20px; border: 1px solid var(--rule);
+      background: var(--cream); color: var(--ink-light); cursor: pointer; transition: all 0.15s;
+    }
+    .opt-medida:hover { border-color: var(--accent); color: var(--accent); }
+    .opt-medida.seleccionada { background: var(--accent-light); border-color: #a8c0d8; color: var(--accent); }
+
+    .justificacion-wrap label { display: block; font-size: 13px; color: var(--ink-light); margin-bottom: 6px; font-style: italic; }
+
+    textarea {
+      width: 100%; font-family: 'Source Serif 4', Georgia, serif; font-size: 14px;
+      color: var(--ink); background: var(--cream); border: 1px solid var(--rule);
+      border-radius: 6px; padding: 10px 12px; resize: vertical; min-height: 70px;
+      transition: border-color 0.15s; line-height: 1.6;
+    }
+    textarea:focus { outline: none; border-color: var(--accent); background: var(--paper); }
+
+    .btn-ver-orientacion {
+      font-family: 'Source Serif 4', Georgia, serif; font-size: 13px;
+      padding: 7px 16px; background: transparent; color: var(--ink-light);
+      border: 1px solid var(--rule); border-radius: 6px; cursor: pointer;
+      margin-top: 0.75rem; transition: all 0.15s; display: block;
+    }
+    .btn-ver-orientacion:hover { border-color: var(--accent); color: var(--accent); }
+
+    .orientacion {
+      display: none; margin-top: 0.75rem;
+      background: var(--ok-light); border-left: 3px solid var(--ok);
+      padding: 0.9rem 1.1rem; border-radius: 0 6px 6px 0;
+      font-size: 14px; color: var(--ok); line-height: 1.7;
+    }
+    .orientacion.visible { display: block; }
+
+    /* ── Resumen ── */
+    #resumen {
+      display: none; background: var(--ok-light); border: 1px solid #a0c8b0;
+      border-radius: 10px; padding: 1.5rem 2rem; text-align: center; margin-bottom: 2rem;
+    }
+    #resumen h2 { font-family: 'Playfair Display', Georgia, serif; font-size: 22px; color: var(--ok); margin-bottom: 0.5rem; }
+    #resumen p { font-size: 14px; color: var(--ok); }
+
+    .back-link {
+      display: inline-block; margin-top: 1rem; font-size: 13px;
+      color: var(--ink-light); text-decoration: none; border-bottom: 1px solid var(--rule);
+    }
+    .back-link:hover { color: var(--accent); border-color: var(--accent); }
+
+    footer {
+      text-align: center; padding: 2rem; font-size: 12px;
+      color: var(--ink-light); border-top: 1px solid var(--rule); font-style: italic;
+    }
+
+    @media (max-width: 500px) {
+      .inputs-grid { grid-template-columns: 1fr; }
+      .ejercicio-card { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-label">Sesión 7 · Estadística</p>
+  <h1>Medidas de centralización. Mediana y moda</h1>
+  <p>Calcula, comprueba y elige la medida más representativa</p>
+</header>
+
+<main>
+
+  <div class="instrucciones">
+    <strong>Parte 1.</strong> Calcula la mediana y la moda de cada conjunto de datos. Introduce los resultados y comprueba. Si fallas, decides si reintentas o ves la resolución paso a paso.<br>
+    <strong>Parte 2.</strong> Para cada apartado, elige qué medida (media, mediana o moda) representa mejor los datos y justifica tu elección.
+  </div>
+
+  <p class="section-label">Parte 1 · Cálculo de mediana y moda</p>
+
+  <div id="ejercicios"></div>
+
+  <div id="resumen">
+    <h2>¡Parte 1 completada!</h2>
+    <p>Has calculado correctamente la mediana y la moda de los tres apartados. Continúa con la parte 2.</p>
+  </div>
+
+  <!-- PARTE 2 -->
+  <div class="parte2" id="parte2">
+    <div class="parte2-titulo">Parte 2 · ¿Qué medida es más representativa?</div>
+    <div class="parte2-desc">Para cada conjunto de datos, elige entre media, mediana y moda la que mejor represente el conjunto. Justifica tu elección con un argumento estadístico. Cuando hayas terminado, puedes consultar una orientación.</div>
+
+    <div class="eleccion-item">
+      <div class="eleccion-label"><strong>a)</strong> Temperaturas máximas: 21,5 · 23,0 · 23,5 · 22,1 · 24,5 · 26,0 · 25,4 · 23,5 °C</div>
+      <div class="opciones-medida">
+        <button class="opt-medida" onclick="elegir(this, 'a')">Media</button>
+        <button class="opt-medida" onclick="elegir(this, 'a')">Mediana</button>
+        <button class="opt-medida" onclick="elegir(this, 'a')">Moda</button>
+      </div>
+      <div class="justificacion-wrap">
+        <label>Justifica tu elección:</label>
+        <textarea placeholder="Explica por qué has elegido esa medida…"></textarea>
+      </div>
+      <button class="btn-ver-orientacion" onclick="mostrarOrientacion('or-a', this)">Ver orientación del profesor</button>
+      <div class="orientacion" id="or-a">
+        La <strong>media</strong> es la medida más adecuada aquí. Los datos son bastante homogéneos (todos entre 21,5 y 26,0 °C) y no hay valores extremos que la distorsionen. La moda (23,5 °C) aparece dos veces y podría usarse, pero no recoge toda la información del conjunto. La mediana también es válida, pero la media aprovecha todos los valores.
+      </div>
+    </div>
+
+    <div class="eleccion-item">
+      <div class="eleccion-label"><strong>b)</strong> Temperaturas mínimas: −3 · −4 · 0 · 1 · −2 · −3 °C</div>
+      <div class="opciones-medida">
+        <button class="opt-medida" onclick="elegir(this, 'b')">Media</button>
+        <button class="opt-medida" onclick="elegir(this, 'b')">Mediana</button>
+        <button class="opt-medida" onclick="elegir(this, 'b')">Moda</button>
+      </div>
+      <div class="justificacion-wrap">
+        <label>Justifica tu elección:</label>
+        <textarea placeholder="Explica por qué has elegido esa medida…"></textarea>
+      </div>
+      <button class="btn-ver-orientacion" onclick="mostrarOrientacion('or-b', this)">Ver orientación del profesor</button>
+      <div class="orientacion" id="or-b">
+        La <strong>moda</strong> (−3 °C) o la <strong>mediana</strong> son buenas opciones aquí. La media da −1,83 °C, un valor que no aparece en los datos y que está influenciado por el valor positivo (1 °C). La moda (−3 °C, que aparece dos veces) refleja bien la temperatura más habitual. La mediana (−2,5 °C) también es robusta frente a los extremos. Ambas son preferibles a la media en este caso.
+      </div>
+    </div>
+
+    <div class="eleccion-item">
+      <div class="eleccion-label"><strong>c)</strong> Gastos en transporte: 120 · 110 · 45 · 80 · 0 · 110 · 65 €</div>
+      <div class="opciones-medida">
+        <button class="opt-medida" onclick="elegir(this, 'c')">Media</button>
+        <button class="opt-medida" onclick="elegir(this, 'c')">Mediana</button>
+        <button class="opt-medida" onclick="elegir(this, 'c')">Moda</button>
+      </div>
+      <div class="justificacion-wrap">
+        <label>Justifica tu elección:</label>
+        <textarea placeholder="Explica por qué has elegido esa medida…"></textarea>
+      </div>
+      <button class="btn-ver-orientacion" onclick="mostrarOrientacion('or-c', this)">Ver orientación del profesor</button>
+      <div class="orientacion" id="or-c">
+        La <strong>mediana</strong> (80 €) es la más representativa. El valor 0 € es un dato atípico que arrastra la media hacia abajo (≈ 75,71 €), haciéndola poco representativa del gasto habitual. La mediana, en cambio, no se ve afectada por ese extremo. La moda (110 €) también aparece dos veces, pero representa el valor más alto del conjunto, lo que podría dar una imagen sesgada hacia arriba.
+      </div>
+    </div>
+
+  </div>
+
+  <a class="back-link" href="../index.html">← Volver al índice</a>
+
+</main>
+
+<footer>
+  Unidad didáctica de Estadística · Curso 2025–2026
+</footer>
+
+<script>
+  const ejercicios = [
+    {
+      letra: 'a',
+      enunciado: 'Temperaturas máximas de la semana pasada:',
+      datos: [21.5, 23.0, 23.5, 22.1, 24.5, 26.0, 25.4, 23.5],
+      unidad: '°C',
+      calcularModa: datos => {
+        const freq = {};
+        datos.forEach(d => freq[d] = (freq[d] || 0) + 1);
+        const max = Math.max(...Object.values(freq));
+        return Object.keys(freq).filter(k => freq[k] === max).map(Number);
+      },
+      notaModa: 'Si hay varios valores con la misma frecuencia, escribe el menor.',
+    },
+    {
+      letra: 'b',
+      enunciado: 'Temperaturas mínimas en invierno:',
+      datos: [-3, -4, 0, 1, -2, -3],
+      unidad: '°C',
+      calcularModa: datos => {
+        const freq = {};
+        datos.forEach(d => freq[d] = (freq[d] || 0) + 1);
+        const max = Math.max(...Object.values(freq));
+        return Object.keys(freq).filter(k => freq[k] === max).map(Number);
+      },
+      notaModa: null,
+    },
+    {
+      letra: 'c',
+      enunciado: 'Gastos semanales en transporte:',
+      datos: [120, 110, 45, 80, 0, 110, 65],
+      unidad: '€',
+      calcularModa: datos => {
+        const freq = {};
+        datos.forEach(d => freq[d] = (freq[d] || 0) + 1);
+        const max = Math.max(...Object.values(freq));
+        return Object.keys(freq).filter(k => freq[k] === max).map(Number);
+      },
+      notaModa: null,
+    },
+  ];
+
+  let completados = 0;
+
+  function calcularMediana(datos) {
+    const ord = [...datos].sort((a, b) => a - b);
+    const n = ord.length;
+    return n % 2 === 1 ? ord[Math.floor(n / 2)] : (ord[n / 2 - 1] + ord[n / 2]) / 2;
+  }
+
+  function construir() {
+    const contenedor = document.getElementById('ejercicios');
+    ejercicios.forEach((ej, idx) => {
+      const ordenados = [...ej.datos].sort((a, b) => a - b);
+      const n = ordenados.length;
+      const mediana = calcularMediana(ej.datos);
+      const modas = ej.calcularModa(ej.datos);
+      const todasIgual = Object.values((() => { const f = {}; ej.datos.forEach(d => f[d] = (f[d]||0)+1); return f; })()).every(v => v === 1);
+
+      const chipsHtml = ej.datos.map(d => `<span class="chip">${d} ${ej.unidad}</span>`).join('');
+
+      // Pasos mediana
+      const esPar = n % 2 === 0;
+      const midLow = n / 2 - 1, midHigh = n / 2;
+      const midSingle = Math.floor(n / 2);
+
+      const pasosMediana = [
+        {
+          label: 'Ordenar los datos de menor a mayor',
+          texto: 'Primero ordenamos todos los valores:',
+          chips: ordenados.map((d, i) => {
+            const esMed = esPar ? (i === midLow || i === midHigh) : i === midSingle;
+            return `<span class="chip${esMed ? ' mediana-pos' : ''}">${d} ${ej.unidad}</span>`;
+          }).join(''),
+        },
+        {
+          label: 'Localizar el valor central',
+          texto: esPar
+            ? `Con ${n} datos (número par), la mediana es la media de los dos valores centrales (posiciones ${midLow + 1} y ${midHigh + 1}): <span class="paso-formula">(${ordenados[midLow]} + ${ordenados[midHigh]}) ÷ 2 = ${mediana} ${ej.unidad}</span>`
+            : `Con ${n} datos (número impar), la mediana es el valor de la posición ${midSingle + 1}:`,
+          formula: esPar ? null : `Mediana = ${mediana} ${ej.unidad}`,
+          resultado: `Mediana = ${mediana} ${ej.unidad}`,
+        },
+      ];
+
+      // Pasos moda
+      const freq = {};
+      ej.datos.forEach(d => freq[d] = (freq[d] || 0) + 1);
+      const maxFreq = Math.max(...Object.values(freq));
+
+      const pasosModa = [
+        {
+          label: 'Contar la frecuencia de cada valor',
+          texto: 'Contamos cuántas veces aparece cada dato:',
+          lista: Object.entries(freq).sort((a,b) => a[0]-b[0]).map(([v, f]) => `${v} ${ej.unidad} → ${f} vez${f>1?'es':''}`).join('<br>'),
+        },
+        {
+          label: 'Identificar el valor más frecuente',
+          texto: todasIgual
+            ? 'Todos los valores aparecen la misma cantidad de veces. El conjunto <strong>no tiene moda</strong>.'
+            : modas.length > 1
+              ? `Los valores ${modas.join(' y ')} ${ej.unidad} aparecen ${maxFreq} veces cada uno. Hay <strong>varias modas</strong>: ${modas.join(', ')} ${ej.unidad}.`
+              : `El valor <strong>${modas[0]} ${ej.unidad}</strong> aparece ${maxFreq} veces: es la moda.`,
+          resultado: todasIgual ? 'Sin moda' : modas.join(', ') + ' ' + ej.unidad,
+        },
+      ];
+
+      const renderPasos = (pasos, prefijo) => pasos.map((p, pi) => `
+        <div class="paso" id="paso-${prefijo}-${pi}">
+          <div class="paso-num">${pi + 1}</div>
+          <div class="paso-body">
+            <div class="paso-label">${p.label}</div>
+            <div class="paso-texto">${p.texto}</div>
+            ${p.chips ? `<div class="chips-ordenados">${p.chips}</div>` : ''}
+            ${p.lista ? `<div style="font-size:13px;color:var(--ink-light);margin:6px 0;line-height:1.8;">${p.lista}</div>` : ''}
+            ${p.formula ? `<div class="paso-formula">${p.formula}</div>` : ''}
+            ${pi === pasos.length - 1 && p.resultado ? `<div class="paso-resultado">${p.resultado}</div>` : ''}
+            ${pi < pasos.length - 1 ? `<button class="btn-siguiente-paso" onclick="siguientePaso('${prefijo}', ${pi + 1})">Siguiente paso →</button>` : ''}
+          </div>
+        </div>
+      `).join('');
+
+      const card = document.createElement('div');
+      card.className = 'ejercicio-card';
+      card.id = `card-${idx}`;
+      card.innerHTML = `
+        <div class="ej-letra">Apartado ${ej.letra})</div>
+        <div class="ej-enunciado">${ej.enunciado}</div>
+        <div class="datos-chips">${chipsHtml}</div>
+
+        <div class="inputs-grid">
+          <div class="input-group">
+            <label for="input-med-${idx}">Mediana</label>
+            <div class="input-row">
+              <input class="input-medida" type="number" step="0.01" id="input-med-${idx}" placeholder="0,00" />
+              <span class="unidad">${ej.unidad}</span>
+            </div>
+          </div>
+          <div class="input-group">
+            <label for="input-mod-${idx}">Moda</label>
+            <div class="input-row">
+              <input class="input-medida" type="number" step="0.01" id="input-mod-${idx}"
+                placeholder="${todasIgual ? 'sin moda' : '0,00'}"
+                ${todasIgual ? 'disabled title="Este conjunto no tiene moda"' : ''} />
+              <span class="unidad">${todasIgual ? '' : ej.unidad}</span>
+            </div>
+            ${ej.notaModa ? `<div class="moda-hint">${ej.notaModa}</div>` : ''}
+            ${modas.length > 1 ? `<div class="moda-hint">Hay varias modas: escribe cualquiera de ellas.</div>` : ''}
+          </div>
+        </div>
+
+        <button class="btn-comprobar" onclick="comprobar(${idx}, ${mediana}, [${modas.join(',')}], ${todasIgual})">Comprobar</button>
+
+        <div class="feedback" id="feedback-${idx}"></div>
+
+        <div class="resolucion" id="resolucion-${idx}">
+          <div class="res-titulo">Resolución: mediana</div>
+          <div class="pasos">${renderPasos(pasosMediana, `m-${idx}`)}</div>
+          <div class="res-titulo" style="margin-top:1.25rem;">Resolución: moda</div>
+          <div class="pasos">${renderPasos(pasosModa, `mo-${idx}`)}</div>
+        </div>
+      `;
+      contenedor.appendChild(card);
+    });
+  }
+
+  function comprobar(idx, medianaCorrecta, modasCorrectas, sinModa) {
+    const inputMed = document.getElementById(`input-med-${idx}`);
+    const inputMod = document.getElementById(`input-mod-${idx}`);
+    const fb = document.getElementById(`feedback-${idx}`);
+    const card = document.getElementById(`card-${idx}`);
+
+    const valMed = parseFloat(inputMed.value.replace(',', '.'));
+    const valMod = sinModa ? null : parseFloat(inputMod.value.replace(',', '.'));
+
+    if (isNaN(valMed) || (!sinModa && isNaN(valMod))) {
+      fb.style.display = 'block';
+      fb.innerHTML = `<div class="feedback-err">Rellena todos los campos antes de comprobar.</div>`;
+      return;
+    }
+
+    const medOk = Math.abs(valMed - medianaCorrecta) < 0.05;
+    const modOk = sinModa ? true : modasCorrectas.some(m => Math.abs(valMod - m) < 0.05);
+    const correcto = medOk && modOk;
+
+    fb.style.display = 'block';
+
+    if (correcto) {
+      card.classList.add('correcto'); card.classList.remove('incorrecto');
+      inputMed.disabled = true; inputMod.disabled = true;
+      card.querySelector('.btn-comprobar').disabled = true;
+      const modTexto = sinModa ? 'sin moda' : modasCorrectas.join(', ') + ' ' + ejercicios[idx].unidad;
+      fb.innerHTML = `<div class="feedback-ok">✓ Correcto. Mediana = <strong>${medianaCorrecta} ${ejercicios[idx].unidad}</strong> · Moda = <strong>${modTexto}</strong>.</div>`;
+      completados++;
+      if (completados === ejercicios.length) {
+        document.getElementById('resumen').style.display = 'block';
+        document.getElementById('resumen').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    } else {
+      card.classList.add('incorrecto'); card.classList.remove('correcto');
+      const errores = [];
+      if (!medOk) errores.push('la mediana');
+      if (!modOk) errores.push('la moda');
+      fb.innerHTML = `
+        <div class="feedback-err">✗ Hay un error en ${errores.join(' y ')}. Revisa tu cálculo.</div>
+        <div class="opciones-error">
+          <button class="btn-reintentar" onclick="reintentar(${idx})">Volver a intentarlo</button>
+          <button class="btn-ayuda" onclick="mostrarAyuda(${idx})">Ver resolución paso a paso</button>
+        </div>`;
+    }
+  }
+
+  function reintentar(idx) {
+    const fb = document.getElementById(`feedback-${idx}`);
+    const card = document.getElementById(`card-${idx}`);
+    document.getElementById(`input-med-${idx}`).value = '';
+    if (!document.getElementById(`input-mod-${idx}`).disabled)
+      document.getElementById(`input-mod-${idx}`).value = '';
+    fb.style.display = 'none';
+    card.classList.remove('incorrecto');
+    document.getElementById(`input-med-${idx}`).focus();
+  }
+
+  function mostrarAyuda(idx) {
+    const res = document.getElementById(`resolucion-${idx}`);
+    res.classList.add('visible');
+    siguientePaso(`m-${idx}`, 0);
+    siguientePaso(`mo-${idx}`, 0);
+    res.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function siguientePaso(prefijo, num) {
+    const paso = document.getElementById(`paso-${prefijo}-${num}`);
+    if (paso) {
+      paso.classList.add('visible');
+      paso.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  function elegir(btn, apartado) {
+    btn.closest('.opciones-medida').querySelectorAll('.opt-medida').forEach(b => b.classList.remove('seleccionada'));
+    btn.classList.add('seleccionada');
+  }
+
+  function mostrarOrientacion(id, btn) {
+    const el = document.getElementById(id);
+    el.classList.toggle('visible');
+    btn.textContent = el.classList.contains('visible') ? 'Ocultar orientación' : 'Ver orientación del profesor';
+  }
+
+  construir();
+</script>
+
+</body>
+</html>
