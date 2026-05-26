@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sesiones 9–10 · Situación de aprendizaje</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Source+Serif+4:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    :root {
+      --ink:#1a1a18;--ink-light:#8a8a82;--rule:#d4d0c4;--cream:#f8f6f0;--paper:#fff;
+      --accent:#1a3a5c;--accent-light:#e8eef5;--ok:#2d5a3d;--ok-light:#e8f2ec;
+      --err:#8b1a1a;--err-light:#f5e8e8;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    body{font-family:'Source Serif 4',Georgia,serif;background:var(--cream);color:var(--ink);min-height:100vh;}
+
+    header{background:var(--accent);color:#fff;padding:3rem 2rem 2.5rem;text-align:center;position:relative;overflow:hidden;}
+    header::before{content:'';position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(255,255,255,.04) 39px,rgba(255,255,255,.04) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(255,255,255,.04) 39px,rgba(255,255,255,.04) 40px);pointer-events:none;}
+    .header-label{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.55);margin-bottom:.6rem;font-weight:300;}
+    header h1{font-family:'Playfair Display',Georgia,serif;font-size:clamp(1.6rem,4vw,2.4rem);font-weight:600;margin-bottom:.5rem;}
+    header p{font-size:14px;color:rgba(255,255,255,.6);font-style:italic;font-weight:300;max-width:520px;margin:0 auto;line-height:1.6;}
+
+    main{max-width:820px;margin:0 auto;padding:2.5rem 1.5rem 4rem;}
+
+    /* Progreso */
+    .progreso{display:flex;margin-bottom:2.5rem;border:1px solid var(--rule);border-radius:8px;overflow:hidden;}
+    .prog-paso{flex:1;padding:10px 4px;text-align:center;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-light);background:var(--paper);border-right:1px solid var(--rule);transition:all .2s;line-height:1.4;}
+    .prog-paso:last-child{border-right:none;}
+    .prog-paso.activo{background:var(--accent);color:#fff;}
+    .prog-paso.completado{background:var(--ok-light);color:var(--ok);}
+
+    /* Secciones */
+    .seccion{display:none;} .seccion.visible{display:block;}
+    .seccion-titulo{font-family:'Playfair Display',Georgia,serif;font-size:20px;color:var(--accent);margin-bottom:.5rem;}
+    .seccion-desc{font-size:14px;color:var(--ink-light);line-height:1.7;margin-bottom:1.5rem;font-style:italic;}
+
+    .card{background:var(--paper);border:1px solid var(--rule);border-radius:10px;padding:1.75rem 2rem;margin-bottom:1.5rem;}
+    .card.correcto{border-left:3px solid var(--ok);}
+    .card.incorrecto{border-left:3px solid var(--err);}
+
+    /* Controles simulador */
+    .controls{display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:1.25rem;}
+    .controls label{font-size:14px;color:var(--ink-light);white-space:nowrap;}
+    input[type=range]{flex:1;min-width:120px;accent-color:var(--accent);cursor:pointer;}
+    .n-display{font-family:'Playfair Display',Georgia,serif;font-size:20px;color:var(--accent);min-width:36px;text-align:center;}
+
+    .chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:1rem;}
+    .chip{background:var(--cream);border:1px solid var(--rule);border-radius:20px;padding:4px 12px;font-size:13px;font-family:'Playfair Display',Georgia,serif;}
+
+    /* Botones */
+    .btn-primary{font-family:'Source Serif 4',Georgia,serif;font-size:14px;padding:9px 22px;background:var(--accent);color:#fff;border:none;border-radius:6px;cursor:pointer;transition:background .15s;}
+    .btn-primary:hover{background:#0c2840;}
+    .btn-primary:disabled{opacity:.4;cursor:not-allowed;}
+    .btn-secondary{font-family:'Source Serif 4',Georgia,serif;font-size:14px;padding:9px 22px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:6px;cursor:pointer;transition:all .15s;}
+    .btn-secondary:hover{background:var(--accent);color:#fff;}
+
+    /* Tabla interactiva */
+    .tabla-container{overflow-x:auto;border:1px solid var(--rule);border-radius:8px;background:var(--paper);}
+    table{width:100%;border-collapse:collapse;font-size:14px;}
+    thead tr{background:var(--accent);color:#fff;}
+    thead th{padding:11px 14px;text-align:center;font-family:'Playfair Display',Georgia,serif;font-weight:400;font-size:13px;}
+    tbody tr{border-bottom:1px solid var(--rule);}
+    tbody tr:last-child{border-bottom:none;}
+    tbody td{padding:8px 10px;text-align:center;vertical-align:middle;}
+    tfoot tr{background:var(--cream);border-top:2px solid var(--rule);}
+    tfoot td{padding:10px 14px;text-align:center;font-size:13px;color:var(--ink-light);font-style:italic;}
+    tfoot td:first-child{text-align:left;font-style:normal;color:var(--ink);}
+
+    .input-tabla{font-family:'Playfair Display',Georgia,serif;font-size:14px;width:90px;padding:5px 8px;border:1px solid var(--rule);border-radius:5px;background:var(--cream);color:var(--ink);text-align:center;transition:border-color .15s;}
+    .input-tabla:focus{outline:none;border-color:var(--accent);background:var(--paper);}
+    .input-tabla:disabled{opacity:.6;cursor:not-allowed;}
+    .input-tabla.ok{border-color:var(--ok);background:var(--ok-light);}
+    .input-tabla.err{border-color:var(--err);background:var(--err-light);}
+
+    .td-valor-fijo{font-family:'Playfair Display',Georgia,serif;font-size:15px;color:var(--ink);}
+
+    /* Feedback */
+    .feedback{display:none;margin:0.75rem 0;}
+    .fb-ok{background:var(--ok-light);border-left:3px solid var(--ok);padding:.8rem 1rem;border-radius:0 6px 6px 0;font-size:14px;color:var(--ok);line-height:1.6;}
+    .fb-err{background:var(--err-light);border-left:3px solid var(--err);padding:.8rem 1rem;border-radius:0 6px 6px 0;font-size:14px;color:var(--err);line-height:1.6;margin-bottom:.75rem;}
+    .opciones-error{display:flex;gap:10px;flex-wrap:wrap;}
+    .btn-reintentar{font-family:'Source Serif 4',Georgia,serif;font-size:13px;padding:7px 16px;background:transparent;color:var(--err);border:1px solid var(--err);border-radius:6px;cursor:pointer;transition:all .15s;}
+    .btn-reintentar:hover{background:var(--err);color:#fff;}
+    .btn-ayuda{font-family:'Source Serif 4',Georgia,serif;font-size:13px;padding:7px 16px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:6px;cursor:pointer;transition:all .15s;}
+    .btn-ayuda:hover{background:var(--accent);color:#fff;}
+
+    /* Resolución paso a paso */
+    .resolucion{display:none;background:var(--cream);border:1px solid var(--rule);border-radius:8px;padding:1.25rem 1.5rem;margin-top:.75rem;}
+    .resolucion.visible{display:block;}
+    .res-titulo{font-family:'Playfair Display',Georgia,serif;font-size:15px;color:var(--accent);margin-bottom:1rem;}
+    .paso{display:grid;grid-template-columns:28px 1fr;gap:0 14px;opacity:0;transform:translateY(6px);transition:opacity .3s,transform .3s;padding-bottom:1rem;}
+    .paso.visible{opacity:1;transform:translateY(0);}
+    .paso-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-family:'Playfair Display',Georgia,serif;flex-shrink:0;margin-top:2px;}
+    .paso-label{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:4px;}
+    .paso-texto{font-size:14px;line-height:1.6;color:var(--ink);}
+    .paso-formula{font-family:'Playfair Display',Georgia,serif;font-size:15px;color:var(--accent);margin:5px 0;}
+    .paso-resultado{font-family:'Playfair Display',Georgia,serif;font-size:18px;color:var(--ok);margin-top:4px;}
+    .btn-siguiente-paso{font-family:'Source Serif 4',Georgia,serif;font-size:13px;padding:6px 14px;background:transparent;color:var(--accent);border:1px solid var(--accent);border-radius:6px;cursor:pointer;margin-top:10px;transition:all .15s;}
+    .btn-siguiente-paso:hover{background:var(--accent);color:#fff;}
+
+    /* Medidas interactivas */
+    .medidas-inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:1rem;}
+    .medida-input-card{background:var(--cream);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.25rem;text-align:center;}
+    .medida-input-card label{display:block;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-light);margin-bottom:8px;}
+    .input-medida{font-family:'Playfair Display',Georgia,serif;font-size:18px;width:100%;padding:7px 10px;border:1px solid var(--rule);border-radius:6px;background:var(--paper);color:var(--ink);text-align:center;transition:border-color .15s;}
+    .input-medida:focus{outline:none;border-color:var(--accent);}
+    .input-medida:disabled{opacity:.6;cursor:not-allowed;}
+    .medida-unidad{font-size:12px;color:var(--ink-light);margin-top:4px;}
+
+    /* Gráfico */
+    .chart-wrap{position:relative;width:100%;max-width:380px;margin:0 auto;height:320px;}
+    .leyenda{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-bottom:1rem;}
+    .ley-item{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-light);}
+    .ley-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+
+    /* Preguntas abiertas */
+    .pregunta-bloque{margin-bottom:1.25rem;}
+    .pregunta-bloque label{display:block;font-size:14px;margin-bottom:8px;line-height:1.5;}
+    .pregunta-bloque label strong{color:var(--accent);}
+    textarea{width:100%;font-family:'Source Serif 4',Georgia,serif;font-size:14px;color:var(--ink);background:var(--cream);border:1px solid var(--rule);border-radius:6px;padding:10px 12px;resize:vertical;min-height:80px;transition:border-color .15s;line-height:1.6;}
+    textarea:focus{outline:none;border-color:var(--accent);background:var(--paper);}
+    .opt-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;}
+    .opt-btn{font-family:'Source Serif 4',Georgia,serif;font-size:13px;padding:5px 14px;border-radius:20px;border:1px solid var(--rule);background:var(--cream);color:var(--ink-light);cursor:pointer;transition:all .15s;}
+    .opt-btn:hover{border-color:var(--accent);color:var(--accent);}
+    .opt-btn.sel{background:var(--accent-light);border-color:#a8c0d8;color:var(--accent);}
+
+    .btn-orientacion{font-family:'Source Serif 4',Georgia,serif;font-size:13px;padding:7px 16px;background:transparent;color:var(--ink-light);border:1px solid var(--rule);border-radius:6px;cursor:pointer;margin-top:.75rem;transition:all .15s;display:inline-block;}
+    .btn-orientacion:hover{border-color:var(--accent);color:var(--accent);}
+    .orientacion{display:none;margin-top:.75rem;background:var(--ok-light);border-left:3px solid var(--ok);padding:.9rem 1.1rem;border-radius:0 6px 6px 0;font-size:14px;color:var(--ok);line-height:1.7;}
+    .orientacion.visible{display:block;}
+
+    .nota{border-left:3px solid var(--accent);background:var(--accent-light);padding:1rem 1.25rem;border-radius:0 6px 6px 0;font-size:14px;color:var(--accent);line-height:1.7;margin-bottom:1.5rem;}
+
+    .nav-row{display:flex;justify-content:space-between;align-items:center;margin-top:1.5rem;flex-wrap:wrap;gap:10px;}
+
+    .final-card{background:var(--ok-light);border:1px solid #a0c8b0;border-radius:10px;padding:2rem;text-align:center;margin-bottom:2rem;}
+    .final-card h2{font-family:'Playfair Display',Georgia,serif;font-size:22px;color:var(--ok);margin-bottom:.75rem;}
+    .final-card p{font-size:14px;color:var(--ok);line-height:1.7;}
+
+    .back-link{display:inline-block;margin-top:1rem;font-size:13px;color:var(--ink-light);text-decoration:none;border-bottom:1px solid var(--rule);}
+    .back-link:hover{color:var(--accent);border-color:var(--accent);}
+
+    footer{text-align:center;padding:2rem;font-size:12px;color:var(--ink-light);border-top:1px solid var(--rule);font-style:italic;}
+
+    .section-label{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-light);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+    .section-label::after{content:'';flex:1;height:1px;background:var(--rule);}
+
+    @media(max-width:520px){.card{padding:1.25rem;}.progreso{display:none;}}
+  </style>
+</head>
+<body>
+
+<header>
+  <p class="header-label">Sesiones 9–10 · Estadística</p>
+  <h1>Situación de aprendizaje</h1>
+  <p>Estudio sobre el uso del teléfono móvil · Instituto Nacional de Estadística</p>
+</header>
+
+<main>
+
+  <div class="progreso">
+    <div class="prog-paso activo"  id="prog-0">1. Datos</div>
+    <div class="prog-paso"         id="prog-1">2. Introducción</div>
+    <div class="prog-paso"         id="prog-2">3. Tabla</div>
+    <div class="prog-paso"         id="prog-3">4. Gráfico</div>
+    <div class="prog-paso"         id="prog-4">5. Medidas</div>
+    <div class="prog-paso"         id="prog-5">6. Conclusión</div>
+  </div>
+
+  <!-- ══ SEC 0: Datos ══ -->
+  <div class="seccion visible" id="sec-0">
+    <div class="seccion-titulo">Datos de la encuesta</div>
+    <div class="seccion-desc">El INE nos ha compartido una muestra de su encuesta. Elige el número de encuestados y genera los datos.</div>
+    <div class="card">
+      <div class="nota"><strong>Pregunta:</strong> ¿Cuántas horas al día usas el teléfono móvil? (valores posibles: 0, 1, 2, 3, 4 o 5 horas)</div>
+      <div class="controls">
+        <label for="nSlider">Encuestados:</label>
+        <input type="range" id="nSlider" min="20" max="100" value="30" step="1"/>
+        <span class="n-display" id="nOut">30</span>
+        <button class="btn-primary" onclick="generarDatos()">Generar muestra</button>
+      </div>
+      <div id="chips-datos"></div>
+    </div>
+    <div class="nav-row">
+      <span></span>
+      <button class="btn-primary" id="btn-sig-0" onclick="irA(1)" disabled>Siguiente: Introducción →</button>
+    </div>
+  </div>
+
+  <!-- ══ SEC 1: Introducción ══ -->
+  <div class="seccion" id="sec-1">
+    <div class="seccion-titulo">Fase 1 · Párrafo introductorio</div>
+    <div class="seccion-desc">Antes de analizar los datos, redacta una presentación del estudio.</div>
+    <div class="card">
+      <div class="pregunta-bloque">
+        <label><strong>1a.</strong> ¿Qué tipo de variable estadística es el número de horas de uso del móvil? Justifica tu respuesta.</label>
+        <div class="opt-row">
+          <button class="opt-btn" onclick="optSel(this,'v')">Cualitativa</button>
+          <button class="opt-btn" onclick="optSel(this,'v')">Cuantitativa discreta</button>
+          <button class="opt-btn" onclick="optSel(this,'v')">Cuantitativa continua</button>
+        </div>
+        <textarea placeholder="Justifica tu elección…"></textarea>
+        <button class="btn-orientacion" onclick="togOr('or-v',this)">Ver orientación</button>
+        <div class="orientacion" id="or-v">En este estudio la variable toma valores enteros (0, 1, 2, 3, 4 o 5 horas), por lo que se trata de una variable <strong>cuantitativa discreta</strong>. En la realidad el tiempo de uso sería continuo, pero al registrarse en horas enteras se convierte en discreta.</div>
+      </div>
+      <div class="pregunta-bloque">
+        <label><strong>1b.</strong> Redacta el párrafo introductorio del estudio. Incluye: qué se estudia, quién lo realiza, para qué es útil y el tamaño de la muestra.</label>
+        <textarea rows="5" placeholder="Escribe aquí tu párrafo…"></textarea>
+        <button class="btn-orientacion" onclick="togOr('or-intro',this)">Ver orientación</button>
+        <div class="orientacion" id="or-intro">Debe mencionar: (1) que se analiza el tiempo diario de uso del móvil; (2) que lo realiza el INE; (3) que sirve para conocer hábitos tecnológicos y diseñar políticas de salud o educación; y (4) el tamaño de la muestra que estás trabajando.</div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-secondary" onclick="irA(0)">← Anterior</button>
+      <button class="btn-primary" onclick="irA(2)">Siguiente: Tabla →</button>
+    </div>
+  </div>
+
+  <!-- ══ SEC 2: Tabla ══ -->
+  <div class="seccion" id="sec-2">
+    <div class="seccion-titulo">Fase 2 · Tabla de frecuencias</div>
+    <div class="seccion-desc">Completa la tabla con los valores correctos. Las frecuencias absolutas ya están dadas — tú calculas el resto.</div>
+    <div class="card" id="card-tabla">
+      <div id="tabla-interactiva"></div>
+      <div style="margin-top:1rem;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn-primary" onclick="comprobarTabla()">Comprobar tabla</button>
+        <button class="btn-secondary" onclick="cargarSolucionTabla()">Ver solución correcta</button>
+      </div>
+      <div class="feedback" id="fb-tabla"></div>
+      <div class="resolucion" id="res-tabla">
+        <div class="res-titulo">Resolución de la tabla</div>
+        <div id="pasos-tabla"></div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-secondary" onclick="irA(1)">← Anterior</button>
+      <button class="btn-primary" id="btn-sig-2" onclick="irA(3)" disabled>Siguiente: Gráfico →</button>
+    </div>
+  </div>
+
+  <!-- ══ SEC 3: Gráfico ══ -->
+  <div class="seccion" id="sec-3">
+    <div class="seccion-titulo">Fase 3 · Diagrama de sectores</div>
+    <div class="seccion-desc">Representación gráfica de la distribución de horas de uso del móvil.</div>
+    <div class="card">
+      <div class="leyenda" id="leyenda-grafico"></div>
+      <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
+      <div style="margin-top:1.5rem;font-size:13px;color:var(--ink-light);line-height:1.7;font-style:italic;border-top:1px solid var(--rule);padding-top:1rem;">
+        Recuerda: cada sector ocupa un ángulo = frecuencia relativa × 360°. La suma de todos los sectores es siempre 360°.
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-secondary" onclick="irA(2)">← Anterior</button>
+      <button class="btn-primary" onclick="irA(4)">Siguiente: Medidas →</button>
+    </div>
+  </div>
+
+  <!-- ══ SEC 4: Medidas ══ -->
+  <div class="seccion" id="sec-4">
+    <div class="seccion-titulo">Fase 4 · Medidas estadísticas</div>
+    <div class="seccion-desc">Calcula la media, la mediana, la moda y el rango de los datos de la muestra.</div>
+
+    <div class="card" id="card-media">
+      <p class="section-label">Media aritmética</p>
+      <div class="medidas-inputs">
+        <div class="medida-input-card">
+          <label for="inp-media">Media</label>
+          <input class="input-medida" type="number" step="0.01" id="inp-media" placeholder="0,00"/>
+          <div class="medida-unidad">horas/día</div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="comprobarMedida('media')">Comprobar</button>
+      <div class="feedback" id="fb-media"></div>
+      <div class="resolucion" id="res-media">
+        <div class="res-titulo">Resolución: media</div>
+        <div id="pasos-media"></div>
+      </div>
+    </div>
+
+    <div class="card" id="card-mediana">
+      <p class="section-label">Mediana</p>
+      <div class="medidas-inputs">
+        <div class="medida-input-card">
+          <label for="inp-mediana">Mediana</label>
+          <input class="input-medida" type="number" step="0.5" id="inp-mediana" placeholder="0"/>
+          <div class="medida-unidad">horas/día</div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="comprobarMedida('mediana')">Comprobar</button>
+      <div class="feedback" id="fb-mediana"></div>
+      <div class="resolucion" id="res-mediana">
+        <div class="res-titulo">Resolución: mediana</div>
+        <div id="pasos-mediana"></div>
+      </div>
+    </div>
+
+    <div class="card" id="card-moda">
+      <p class="section-label">Moda</p>
+      <div class="medidas-inputs">
+        <div class="medida-input-card">
+          <label for="inp-moda">Moda</label>
+          <input class="input-medida" type="number" step="1" id="inp-moda" placeholder="0"/>
+          <div class="medida-unidad">horas/día</div>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--ink-light);font-style:italic;margin:6px 0 10px;">Si hay varias modas, escribe cualquiera de ellas.</div>
+      <button class="btn-primary" onclick="comprobarMedida('moda')">Comprobar</button>
+      <div class="feedback" id="fb-moda"></div>
+      <div class="resolucion" id="res-moda">
+        <div class="res-titulo">Resolución: moda</div>
+        <div id="pasos-moda"></div>
+      </div>
+    </div>
+
+    <div class="card" id="card-rango">
+      <p class="section-label">Rango</p>
+      <div class="medidas-inputs">
+        <div class="medida-input-card">
+          <label for="inp-rango">Rango</label>
+          <input class="input-medida" type="number" step="1" id="inp-rango" placeholder="0"/>
+          <div class="medida-unidad">horas/día</div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="comprobarMedida('rango')">Comprobar</button>
+      <div class="feedback" id="fb-rango"></div>
+      <div class="resolucion" id="res-rango">
+        <div class="res-titulo">Resolución: rango</div>
+        <div id="pasos-rango"></div>
+      </div>
+    </div>
+
+    <div class="nav-row">
+      <button class="btn-secondary" onclick="irA(3)">← Anterior</button>
+      <button class="btn-primary" id="btn-sig-4" onclick="irA(5)" disabled>Siguiente: Conclusión →</button>
+    </div>
+  </div>
+
+  <!-- ══ SEC 5: Conclusión ══ -->
+  <div class="seccion" id="sec-5">
+    <div class="seccion-titulo">Fase 5 · Párrafo de conclusión</div>
+    <div class="seccion-desc">Interpreta los resultados obtenidos y cierra el estudio.</div>
+    <div class="card">
+      <div class="medidas-inputs" id="medidas-resumen"></div>
+      <div class="pregunta-bloque" style="margin-top:1.5rem;">
+        <label><strong>5a.</strong> ¿Qué medida de centralización representa mejor los datos? ¿Por qué?</label>
+        <div class="opt-row">
+          <button class="opt-btn" onclick="optSel(this,'rep')">La media</button>
+          <button class="opt-btn" onclick="optSel(this,'rep')">La mediana</button>
+          <button class="opt-btn" onclick="optSel(this,'rep')">Las dos por igual</button>
+        </div>
+        <textarea placeholder="Justifica tu elección…"></textarea>
+      </div>
+      <div class="pregunta-bloque">
+        <label><strong>5b.</strong> ¿Qué te dice el rango sobre la variabilidad del uso del móvil en esta muestra?</label>
+        <textarea placeholder="Interpreta el rango…"></textarea>
+      </div>
+      <div class="pregunta-bloque">
+        <label><strong>5c.</strong> ¿Consideras que el uso del móvil de esta muestra es excesivo?</label>
+        <div class="opt-row">
+          <button class="opt-btn" onclick="optSel(this,'exc')">Sí, es excesivo</button>
+          <button class="opt-btn" onclick="optSel(this,'exc')">Depende del perfil</button>
+          <button class="opt-btn" onclick="optSel(this,'exc')">No especialmente</button>
+        </div>
+        <textarea placeholder="Argumenta con los datos…"></textarea>
+      </div>
+      <div class="pregunta-bloque">
+        <label><strong>5d.</strong> Redacta el párrafo de conclusión completo del estudio.</label>
+        <textarea rows="6" placeholder="Escribe aquí tu conclusión…"></textarea>
+        <button class="btn-orientacion" onclick="togOr('or-concl',this)">Ver orientación</button>
+        <div class="orientacion" id="or-concl"></div>
+      </div>
+    </div>
+    <div class="nav-row">
+      <button class="btn-secondary" onclick="irA(4)">← Anterior</button>
+      <button class="btn-primary" onclick="finalizar()">Finalizar estudio ✓</button>
+    </div>
+  </div>
+
+  <!-- ══ Final ══ -->
+  <div class="seccion" id="sec-final">
+    <div class="final-card">
+      <h2>¡Estudio completado!</h2>
+      <p>Has completado todas las fases del estudio estadístico: recogida de datos, tabla de frecuencias, representación gráfica, cálculo de medidas y redacción de conclusiones.<br><br>Este es exactamente el proceso que utilizan los estadísticos profesionales.</p>
+    </div>
+    <a class="back-link" href="../index.html">← Volver al índice</a>
+  </div>
+
+</main>
+<footer>Unidad didáctica de Estadística · Curso 2025–2026</footer>
+
+<script>
+const PALETA = ['#1a3a5c','#2d5a3d','#6b3a1a','#5c3a8a','#8a3a1a','#3a5c8a'];
+const VALORES = [0,1,2,3,4,5];
+const PESOS   = [3,8,14,18,12,5]; // distribución realista
+
+let datos=[], stats={}, medCompletadas=new Set(), tablaCompletada=false, pieInst=null;
+
+// ── Slider ──
+document.getElementById('nSlider').addEventListener('input', e => { document.getElementById('nOut').textContent = e.target.value; });
+
+// ── Generar datos ──
+function generarDatos() {
+  const n = parseInt(document.getElementById('nSlider').value);
+  const total = PESOS.reduce((a,b)=>a+b,0);
+  const acum=[]; let s=0;
+  PESOS.forEach(p=>{ s+=p/total; acum.push(s); });
+
+  datos = Array.from({length:n}, ()=>{
+    const r=Math.random();
+    return VALORES[acum.findIndex(a=>r<=a)];
+  });
+
+  calcStats();
+  mostrarChips();
+  construirTablaInteractiva();
+  construirGrafico();
+  construirPasosMedidas();
+  document.getElementById('btn-sig-0').disabled = false;
+  tablaCompletada = false;
+  medCompletadas.clear();
+  document.getElementById('btn-sig-2').disabled = true;
+  document.getElementById('btn-sig-4').disabled = true;
+  ['media','mediana','moda','rango'].forEach(m=>{
+    const inp=document.getElementById('inp-'+m);
+    if(inp){ inp.value=''; inp.disabled=false; }
+    const fb=document.getElementById('fb-'+m);
+    if(fb){ fb.style.display='none'; }
+    const res=document.getElementById('res-'+m);
+    if(res){ res.classList.remove('visible'); }
+    const card=document.getElementById('card-'+m);
+    if(card){ card.classList.remove('correcto','incorrecto'); }
+  });
+}
+
+function calcStats() {
+  const n=datos.length;
+  const sorted=[...datos].sort((a,b)=>a-b);
+  const suma=datos.reduce((a,b)=>a+b,0);
+  const media=suma/n;
+  const mediana=n%2===1?sorted[Math.floor(n/2)]:(sorted[n/2-1]+sorted[n/2])/2;
+  const min=sorted[0], max=sorted[n-1], rango=max-min;
+  const freq={};
+  VALORES.forEach(v=>freq[v]=0);
+  datos.forEach(d=>freq[d]++);
+  const maxFreq=Math.max(...Object.values(freq));
+  const modas=VALORES.filter(v=>freq[v]===maxFreq);
+  stats={n,sorted,suma,media,mediana,min,max,rango,freq,modas,maxFreq};
+}
+
+function mostrarChips() {
+  const el=document.getElementById('chips-datos');
+  el.innerHTML='<div style="font-size:13px;color:var(--ink-light);margin-bottom:8px;">Datos generados (horas/día):</div>';
+  const wrap=document.createElement('div'); wrap.className='chips';
+  datos.forEach(d=>{ const s=document.createElement('span'); s.className='chip'; s.textContent=d+' h'; wrap.appendChild(s); });
+  el.appendChild(wrap);
+}
+
+// ── Tabla interactiva ──
+function construirTablaInteractiva() {
+  const {n,freq}=stats;
+  let html=`<div class="tabla-container"><table>
+    <thead><tr>
+      <th>Horas/día</th>
+      <th>Frec. absoluta (nᵢ)</th>
+      <th>Frec. relativa (fᵢ)</th>
+      <th>Porcentaje (%ᵢ)</th>
+      <th>Ángulo (°)</th>
+    </tr></thead><tbody>`;
+
+  VALORES.forEach(v=>{
+    const ni=freq[v];
+    html+=`<tr>
+      <td class="td-valor-fijo">${v} h</td>
+      <td class="td-valor-fijo">${ni}</td>
+      <td><input class="input-tabla" type="number" step="0.0001" id="tfi-${v}" placeholder="0,0000"/></td>
+      <td><input class="input-tabla" type="number" step="0.01"   id="tpi-${v}" placeholder="0,00"/></td>
+      <td><input class="input-tabla" type="number" step="0.01"   id="tai-${v}" placeholder="0,00"/></td>
+    </tr>`;
+  });
+
+  html+=`</tbody><tfoot><tr>
+    <td>Total</td><td>${n}</td>
+    <td><input class="input-tabla" type="number" step="0.0001" id="tfi-total" placeholder="0,0000"/></td>
+    <td><input class="input-tabla" type="number" step="0.01"   id="tpi-total" placeholder="0,00"/></td>
+    <td><input class="input-tabla" type="number" step="0.01"   id="tai-total" placeholder="0,00"/></td>
+  </tr></tfoot></table></div>`;
+
+  document.getElementById('tabla-interactiva').innerHTML=html;
+  document.getElementById('fb-tabla').style.display='none';
+  document.getElementById('res-tabla').classList.remove('visible');
+  document.getElementById('card-tabla').classList.remove('correcto','incorrecto');
+}
+
+function comprobarTabla() {
+  const {n,freq}=stats;
+  let errores=0;
+
+  VALORES.forEach(v=>{
+    const ni=freq[v];
+    const fi=ni/n, pi=fi*100, ai=fi*360;
+    const inpFi=document.getElementById('tfi-'+v);
+    const inpPi=document.getElementById('tpi-'+v);
+    const inpAi=document.getElementById('tai-'+v);
+
+    const vFi=parseFloat(inpFi.value.replace(',','.'));
+    const vPi=parseFloat(inpPi.value.replace(',','.'));
+    const vAi=parseFloat(inpAi.value.replace(',','.'));
+
+    const okFi=!isNaN(vFi)&&Math.abs(vFi-fi)<0.001;
+    const okPi=!isNaN(vPi)&&Math.abs(vPi-pi)<0.1;
+    const okAi=!isNaN(vAi)&&Math.abs(vAi-ai)<0.2;
+
+    inpFi.className='input-tabla '+(okFi?'ok':'err');
+    inpPi.className='input-tabla '+(okPi?'ok':'err');
+    inpAi.className='input-tabla '+(okAi?'ok':'err');
+    if(!okFi||!okPi||!okAi) errores++;
+  });
+
+  // Totales
+  const inpFt=document.getElementById('tfi-total');
+  const inpPt=document.getElementById('tpi-total');
+  const inpAt=document.getElementById('tai-total');
+  const okFt=!isNaN(parseFloat(inpFt.value))&&Math.abs(parseFloat(inpFt.value)-1)<0.001;
+  const okPt=!isNaN(parseFloat(inpPt.value))&&Math.abs(parseFloat(inpPt.value)-100)<0.1;
+  const okAt=!isNaN(parseFloat(inpAt.value))&&Math.abs(parseFloat(inpAt.value)-360)<0.5;
+  inpFt.className='input-tabla '+(okFt?'ok':'err');
+  inpPt.className='input-tabla '+(okPt?'ok':'err');
+  inpAt.className='input-tabla '+(okAt?'ok':'err');
+  if(!okFt||!okPt||!okAt) errores++;
+
+  const fb=document.getElementById('fb-tabla');
+  const card=document.getElementById('card-tabla');
+  fb.style.display='block';
+
+  if(errores===0){
+    card.classList.add('correcto'); card.classList.remove('incorrecto');
+    fb.innerHTML=`<div class="fb-ok">✓ Tabla correcta. Puedes continuar con el gráfico.</div>`;
+    tablaCompletada=true;
+    document.getElementById('btn-sig-2').disabled=false;
+    VALORES.forEach(v=>{
+      ['tfi-','tpi-','tai-'].forEach(p=>{ const el=document.getElementById(p+v); if(el) el.disabled=true; });
+    });
+    ['tfi-total','tpi-total','tai-total'].forEach(id=>{ const el=document.getElementById(id); if(el) el.disabled=true; });
+  } else {
+    card.classList.add('incorrecto'); card.classList.remove('correcto');
+    fb.innerHTML=`
+      <div class="fb-err">✗ Hay ${errores} fila(s) con errores (marcadas en rojo). Revisa los cálculos.</div>
+      <div class="opciones-error">
+        <button class="btn-reintentar" onclick="reintentarTabla()">Volver a intentarlo</button>
+        <button class="btn-ayuda" onclick="mostrarResTabla()">Ver resolución</button>
+      </div>`;
+  }
+}
+
+function cargarSolucionTabla() {
+  const {n,freq}=stats;
+  VALORES.forEach(v=>{
+    const fi=freq[v]/n;
+    const pi=fi*100;
+    const ai=fi*360;
+    const inpFi=document.getElementById('tfi-'+v);
+    const inpPi=document.getElementById('tpi-'+v);
+    const inpAi=document.getElementById('tai-'+v);
+    if(inpFi){ inpFi.value=fi.toFixed(4); inpFi.className='input-tabla ok'; inpFi.disabled=true; }
+    if(inpPi){ inpPi.value=pi.toFixed(2);  inpPi.className='input-tabla ok'; inpPi.disabled=true; }
+    if(inpAi){ inpAi.value=ai.toFixed(2);  inpAi.className='input-tabla ok'; inpAi.disabled=true; }
+  });
+  const inpFt=document.getElementById('tfi-total');
+  const inpPt=document.getElementById('tpi-total');
+  const inpAt=document.getElementById('tai-total');
+  if(inpFt){ inpFt.value='1.0000'; inpFt.className='input-tabla ok'; inpFt.disabled=true; }
+  if(inpPt){ inpPt.value='100.00'; inpPt.className='input-tabla ok'; inpPt.disabled=true; }
+  if(inpAt){ inpAt.value='360.00'; inpAt.className='input-tabla ok'; inpAt.disabled=true; }
+  const fb=document.getElementById('fb-tabla');
+  const card=document.getElementById('card-tabla');
+  fb.style.display='block';
+  fb.innerHTML=`<div class="fb-ok">Solución cargada. Estudia los valores antes de continuar.</div>`;
+  card.classList.add('correcto'); card.classList.remove('incorrecto');
+  tablaCompletada=true;
+  document.getElementById('btn-sig-2').disabled=false;
+}
+
+function reintentarTabla() {
+  VALORES.forEach(v=>{
+    ['tfi-','tpi-','tai-'].forEach(p=>{
+      const el=document.getElementById(p+v);
+      if(el){ el.className='input-tabla'; el.value=''; }
+    });
+  });
+  ['tfi-total','tpi-total','tai-total'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el){ el.className='input-tabla'; el.value=''; }
+  });
+  document.getElementById('fb-tabla').style.display='none';
+  document.getElementById('card-tabla').classList.remove('incorrecto');
+}
+
+function mostrarResTabla() {
+  const {n,freq}=stats;
+  const res=document.getElementById('res-tabla');
+  const cont=document.getElementById('pasos-tabla');
+  res.classList.add('visible');
+
+  let html=``;
+  // Paso 1
+  html+=`<div class="paso visible"><div class="paso-num">1</div><div class="paso-body">
+    <div class="paso-label">Frecuencia relativa: fᵢ = nᵢ ÷ N</div>
+    <div class="paso-texto">Dividimos cada frecuencia absoluta entre el total (N = ${n}):</div>
+    ${VALORES.map(v=>`<div class="paso-formula">${v} h: ${freq[v]} ÷ ${n} = ${(freq[v]/n).toFixed(4)}</div>`).join('')}
+  </div></div>`;
+  // Paso 2
+  html+=`<div class="paso visible"><div class="paso-num">2</div><div class="paso-body">
+    <div class="paso-label">Porcentaje: %ᵢ = fᵢ × 100</div>
+    <div class="paso-texto">Multiplicamos cada frecuencia relativa por 100:</div>
+    ${VALORES.map(v=>`<div class="paso-formula">${v} h: ${(freq[v]/n).toFixed(4)} × 100 = ${(freq[v]/n*100).toFixed(2)}%</div>`).join('')}
+  </div></div>`;
+  // Paso 3
+  html+=`<div class="paso visible"><div class="paso-num">3</div><div class="paso-body">
+    <div class="paso-label">Ángulo: αᵢ = fᵢ × 360°</div>
+    <div class="paso-texto">Multiplicamos cada frecuencia relativa por 360°:</div>
+    ${VALORES.map(v=>`<div class="paso-formula">${v} h: ${(freq[v]/n).toFixed(4)} × 360 = ${(freq[v]/n*360).toFixed(2)}°</div>`).join('')}
+    <div class="paso-resultado">Suma de ángulos = 360°</div>
+  </div></div>`;
+
+  cont.innerHTML=html;
+  res.scrollIntoView({behavior:'smooth',block:'nearest'});
+  tablaCompletada=true;
+  document.getElementById('btn-sig-2').disabled=false;
+}
+
+// ── Gráfico ──
+function construirGrafico() {
+  const {n,freq}=stats;
+  const labels=VALORES.map(v=>v+' h');
+  const data=VALORES.map(v=>freq[v]);
+  const leyEl=document.getElementById('leyenda-grafico');
+  leyEl.innerHTML='';
+  VALORES.forEach((v,i)=>{
+    const pct=(freq[v]/n*100).toFixed(1);
+    const item=document.createElement('div'); item.className='ley-item';
+    item.innerHTML=`<div class="ley-dot" style="background:${PALETA[i]};"></div><span>${v}h — ${pct}%</span>`;
+    leyEl.appendChild(item);
+  });
+  if(pieInst) pieInst.destroy();
+  pieInst=new Chart(document.getElementById('pieChart'),{
+    type:'pie',
+    data:{labels,datasets:[{data,backgroundColor:PALETA,borderColor:'#fff',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.parsed} personas (${(ctx.parsed/n*100).toFixed(1)}%)`}}}}
+  });
+}
+
+// ── Medidas: pasos ──
+function construirPasosMedidas() {
+  const {n,sorted,suma,media,mediana,min,max,rango,freq,modas,maxFreq}=stats;
+  const esPar=n%2===0;
+
+  // Media
+  document.getElementById('pasos-media').innerHTML=`
+    <div class="paso visible"><div class="paso-num">1</div><div class="paso-body">
+      <div class="paso-label">Sumar todos los valores</div>
+      <div class="paso-texto">Sumamos las ${n} horas registradas:</div>
+      <div class="paso-formula">Suma = ${suma} h</div>
+    </div></div>
+    <div class="paso visible"><div class="paso-num">2</div><div class="paso-body">
+      <div class="paso-label">Dividir entre el número de datos</div>
+      <div class="paso-formula">${suma} ÷ ${n} = ${media.toFixed(2)} h</div>
+      <div class="paso-resultado">x̄ = ${media.toFixed(2)} h</div>
+    </div></div>`;
+
+  // Mediana
+  const midDesc=esPar
+    ?`Con ${n} datos (par), la mediana es la media de las posiciones ${n/2} y ${n/2+1}: (${sorted[n/2-1]} + ${sorted[n/2]}) ÷ 2 = ${mediana} h`
+    :`Con ${n} datos (impar), la mediana es el valor de la posición ${Math.floor(n/2)+1}: ${mediana} h`;
+  document.getElementById('pasos-mediana').innerHTML=`
+    <div class="paso visible"><div class="paso-num">1</div><div class="paso-body">
+      <div class="paso-label">Ordenar los datos</div>
+      <div class="paso-texto">Ordenamos los ${n} valores de menor a mayor.</div>
+      <div class="paso-formula">Mínimo: ${min} h · Máximo: ${max} h</div>
+    </div></div>
+    <div class="paso visible"><div class="paso-num">2</div><div class="paso-body">
+      <div class="paso-label">Localizar el valor central</div>
+      <div class="paso-texto">${midDesc}</div>
+      <div class="paso-resultado">Mediana = ${mediana} h</div>
+    </div></div>`;
+
+  // Moda
+  const freqDesc=VALORES.map(v=>`${v} h → ${freq[v]} vez${freq[v]!==1?'es':''}`).join(' · ');
+  document.getElementById('pasos-moda').innerHTML=`
+    <div class="paso visible"><div class="paso-num">1</div><div class="paso-body">
+      <div class="paso-label">Contar frecuencias</div>
+      <div class="paso-texto">${freqDesc}</div>
+    </div></div>
+    <div class="paso visible"><div class="paso-num">2</div><div class="paso-body">
+      <div class="paso-label">Identificar el valor más frecuente</div>
+      <div class="paso-texto">${modas.length>1?`Los valores ${modas.join(' y ')} h aparecen ${maxFreq} veces cada uno.`:`El valor ${modas[0]} h aparece ${maxFreq} veces.`}</div>
+      <div class="paso-resultado">Moda = ${modas.join(', ')} h</div>
+    </div></div>`;
+
+  // Rango
+  document.getElementById('pasos-rango').innerHTML=`
+    <div class="paso visible"><div class="paso-num">1</div><div class="paso-body">
+      <div class="paso-label">Identificar mínimo y máximo</div>
+      <div class="paso-formula">Mínimo = ${min} h · Máximo = ${max} h</div>
+    </div></div>
+    <div class="paso visible"><div class="paso-num">2</div><div class="paso-body">
+      <div class="paso-label">Rango = máximo − mínimo</div>
+      <div class="paso-formula">${max} − ${min} = ${rango} h</div>
+      <div class="paso-resultado">Rango = ${rango} h</div>
+    </div></div>`;
+
+  // Resumen conclusión
+  document.getElementById('medidas-resumen').innerHTML=`
+    <div style="background:var(--cream);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.25rem;text-align:center;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-light);margin-bottom:6px;">Media</div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--accent);">${media.toFixed(2)}</div>
+      <div style="font-size:12px;color:var(--ink-light);">h/día</div>
+    </div>
+    <div style="background:var(--cream);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.25rem;text-align:center;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-light);margin-bottom:6px;">Mediana</div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--accent);">${mediana}</div>
+      <div style="font-size:12px;color:var(--ink-light);">h/día</div>
+    </div>
+    <div style="background:var(--cream);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.25rem;text-align:center;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-light);margin-bottom:6px;">Moda</div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--accent);">${modas.join(', ')}</div>
+      <div style="font-size:12px;color:var(--ink-light);">h/día</div>
+    </div>
+    <div style="background:var(--cream);border:1px solid var(--rule);border-radius:8px;padding:1rem 1.25rem;text-align:center;">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink-light);margin-bottom:6px;">Rango</div>
+      <div style="font-family:'Playfair Display',serif;font-size:22px;color:var(--accent);">${rango}</div>
+      <div style="font-size:12px;color:var(--ink-light);">h/día</div>
+    </div>`;
+
+  const excesivo=media>=3?'podría considerarse elevado':'se sitúa en un nivel moderado';
+  document.getElementById('or-concl').innerHTML=`
+    Una buena conclusión debería mencionar:<br>
+    · La muestra analizada (${n} personas) y la variable estudiada.<br>
+    · Los resultados: media ${media.toFixed(2)} h, mediana ${mediana} h, moda ${modas.join('/')} h, rango ${rango} h.<br>
+    · Qué medida representa mejor los datos y por qué (compara media y mediana).<br>
+    · Una valoración: el uso medio de ${media.toFixed(2)} h ${excesivo}.<br>
+    · El rango de ${rango} h indica una variabilidad ${rango>=4?'alta':'moderada'} entre los encuestados.`;
+}
+
+// ── Comprobar medidas ──
+function comprobarMedida(tipo) {
+  const {media,mediana,modas,rango}=stats;
+  const correctos={media,mediana,moda:modas,rango};
+  const val=parseFloat(document.getElementById('inp-'+tipo).value.replace(',','.'));
+  const fb=document.getElementById('fb-'+tipo);
+  const card=document.getElementById('card-'+tipo);
+  fb.style.display='block';
+
+  if(isNaN(val)){ fb.innerHTML=`<div class="fb-err">Introduce un valor numérico.</div>`; return; }
+
+  let correcto=false;
+  if(tipo==='moda') correcto=correctos.moda.some(m=>Math.abs(val-m)<0.05);
+  else correcto=Math.abs(val-correctos[tipo])<0.05;
+
+  if(correcto){
+    card.classList.add('correcto'); card.classList.remove('incorrecto');
+    document.getElementById('inp-'+tipo).disabled=true;
+    card.querySelector('.btn-primary').disabled=true;
+    const etiquetas={media:`x̄ = ${media.toFixed(2)} h`,mediana:`Mediana = ${mediana} h`,moda:`Moda = ${modas.join(', ')} h`,rango:`Rango = ${rango} h`};
+    fb.innerHTML=`<div class="fb-ok">✓ Correcto. ${etiquetas[tipo]}.</div>`;
+    medCompletadas.add(tipo);
+    if(medCompletadas.size===4) document.getElementById('btn-sig-4').disabled=false;
+  } else {
+    card.classList.add('incorrecto'); card.classList.remove('correcto');
+    fb.innerHTML=`
+      <div class="fb-err">✗ No es correcto. Revisa tu cálculo.</div>
+      <div class="opciones-error">
+        <button class="btn-reintentar" onclick="reintentarMedida('${tipo}')">Volver a intentarlo</button>
+        <button class="btn-ayuda" onclick="mostrarResMedida('${tipo}')">Ver resolución paso a paso</button>
+      </div>`;
+  }
+}
+
+function reintentarMedida(tipo){
+  document.getElementById('inp-'+tipo).value='';
+  document.getElementById('inp-'+tipo).focus();
+  document.getElementById('fb-'+tipo).style.display='none';
+  document.getElementById('card-'+tipo).classList.remove('incorrecto');
+}
+
+function mostrarResMedida(tipo){
+  const res=document.getElementById('res-'+tipo);
+  res.classList.add('visible');
+  res.scrollIntoView({behavior:'smooth',block:'nearest'});
+  medCompletadas.add(tipo);
+  if(medCompletadas.size===4) document.getElementById('btn-sig-4').disabled=false;
+}
+
+// ── Navegación ──
+let secActual=0;
+function irA(n){
+  document.getElementById('sec-'+secActual).classList.remove('visible');
+  document.getElementById('prog-'+secActual)?.classList.remove('activo');
+  document.getElementById('prog-'+secActual)?.classList.add('completado');
+  secActual=n;
+  document.getElementById('sec-'+n).classList.add('visible');
+  document.getElementById('prog-'+n)?.classList.remove('completado');
+  document.getElementById('prog-'+n)?.classList.add('activo');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function finalizar(){
+  document.getElementById('sec-5').classList.remove('visible');
+  document.getElementById('prog-5')?.classList.remove('activo');
+  document.getElementById('prog-5')?.classList.add('completado');
+  document.getElementById('sec-final').classList.add('visible');
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function optSel(btn,g){ btn.closest('.opt-row').querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('sel')); btn.classList.add('sel'); }
+function togOr(id,btn){ const el=document.getElementById(id); el.classList.toggle('visible'); btn.textContent=el.classList.contains('visible')?'Ocultar orientación':'Ver orientación'; }
+</script>
+
+</body>
+</html>
